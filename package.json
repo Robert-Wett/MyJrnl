@@ -1,0 +1,27 @@
+{
+  "name": "journal",
+  "version": "0.0.0",
+  "description": "CLI -> Cloud Storage -> Web UI app inspired by jrnl",
+  "main": "journal-cli.js",
+  "scripts": {
+    "test": "journal \"@node @programming building a node app\""
+  },
+  "depedencies": {
+    "commander": "*",
+    "underscore": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Robert-Wett/journal.git"
+  },
+  "keywords": [
+    "node",
+    "javascript"
+  ],
+  "author": "Robert Wettlaufer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Robert-Wett/journal/issues"
+  },
+  "homepage": "https://github.com/Robert-Wett/journal"
+}
