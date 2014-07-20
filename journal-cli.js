@@ -1,5 +1,6 @@
 var config   = require('./config.js').config
   , Firebase = require('firebase')
+  , baseRef  = new Firebase(config.firebase)
   , _        = require('underscore')
   , entryRef = new Firebase(config.entries)
   , tags     = {};
@@ -14,7 +15,8 @@ function parseEntry(line) {
     , tagHolder = {}
     // jrnl does some basic time-stamping keywords like 'yesterday' or
     // '3 pm' that resolves to a timestamp. Not hard, can do that later.
-    , time      = Date.now();
+    , time      = Date.now()
+    , tagRef;
 
   _.each(words, function(word) {
     if (word[0] === '@' && word[1]) {
@@ -35,7 +37,13 @@ function parseEntry(line) {
   });
 
   entryRef.push({body: line, timestamp: Date.now()});
-  return;
+
+  /*
+  _.each(tagQueue, function(sentence, tag) {
+    tagRef = new Firebase(config.firebase + '/' + tag);
+    tagRef.push(sentence);
+  });
+  */
 };
 
 parseEntry(process.argv[2]);
