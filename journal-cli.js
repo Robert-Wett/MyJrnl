@@ -1,13 +1,17 @@
-var program = require('commander')
-  , db      = require('storage')
-  , tags    = {};
+var config   = require('./config.js').config
+  , Firebase = require('firebase')
+  , _        = require('underscore')
+  , entryRef = new Firebase(config.entries)
+  , tags     = {};
 
-var line = parseEntry(process.argv[1]);
 
 function parseEntry(line) {
+  if (!line) return;
+
   var words     = line.split('')
     , tagQueue  = []
     , wordQueue = []
+    , tagHolder = {}
     // jrnl does some basic time-stamping keywords like 'yesterday' or
     // '3 pm' that resolves to a timestamp. Not hard, can do that later.
     , time      = Date.now();
@@ -20,28 +24,18 @@ function parseEntry(line) {
     wordQueue.push(word);
   });
 
-  _.each(tagQueue, function(tag) {
-    tags[tag[0]] = tag[1];
+  // Build the hash/object for tags
+  _.each(tagQueue, function(tagEntry) {
+    if (tagQueue[tagEntry[0]]) {
+      tagQueue[tagEntry[0]].push(tagEntry[1]);
+    }
+    else {
+      tags[tagEntry[0]] = [tagEntry[1]];
+    }
   });
 
-  // Add the entry to the DB
-  db.add(entry, {
-    entry: wordQueue.join(""),
-    tags: _.each(tagQueue, function(t) { return t[0]; }),
-    t_stamp: time
-  });
-
-  // For each tag (key) in the sentence, add the sentence as a value.
-  _.each(tagQueue, function(entry) {
-    db.add(tag, {
-      tag: entry[0],
-      entry: entry[1]
-    });
-  });
+  entryRef.push({body: line, timestamp: Date.now()});
+  return;
 };
 
-/*
-TODO://lots
-The `db` object is complete conjecture at this point, though it's probably
-not far off from 50 npm libs :)
-*/
+parseEntry(process.argv[2]);
