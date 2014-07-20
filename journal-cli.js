@@ -21,7 +21,7 @@ function parseEntry(line) {
   _.each(words, function(word) {
     if (word[0] === '@' && word[1]) {
       // Create an array with the tag as the key, and sentence as the value
-      tagQueue.push([word, words]);
+      tagQueue.push([word.slice(1), words]);
     }
     wordQueue.push(word);
   });
