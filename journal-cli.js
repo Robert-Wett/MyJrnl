@@ -4,6 +4,7 @@ var config   = require('./config.js').config
   , baseRef  = new Firebase(config.firebase)
   , _        = require('underscore')
   , entryRef = new Firebase(config.entries)
+  , Table    = require('cli-table')
   , tags     = {};
 
 
@@ -24,21 +25,31 @@ if (program.number) {
 
 function getEntries(num) {
   num = num || 10;
+  var table = new Table({
+    head: ['Date', 'Body'],
+    colWidths: [15, 100]
+  });
   var entryQuery = entryRef.limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry) {
-      console.log(entry.body);
+      table.push([entry.timestamp, entry.body]);
     });
+    console.log(table.toString());
   });
 }
 
 function getTags(num) {
   num = num || 10;
+  var table = new Table({
+    head: ['Tag', 'Entry'],
+    colWidths: [10, 100]
+  });
   var entryQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry, key, list) {
       _.each(entry, function(entryVal) {
-        console.log(key + ' -> ' + entryVal);
+        table.push([key, entryVal.body]);
       });
     });
+    console.log(table.toString());
   });
 }
 
@@ -72,7 +83,7 @@ function parseEntry(line) {
   _.each(tagQueue, function(tagEntry) {
     tagRef = new Firebase(config.firebase + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
-    tagRef.push(tagEntry[1]);
+    tagRef.push({body: tagEntry[1]});
   });
 
   entryRef.push({body: line, timestamp: Date.now()});
