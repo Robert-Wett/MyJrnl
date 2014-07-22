@@ -1,54 +1,69 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Journal : CLI app backed by cloud storage and a web front-end, inspired by jrnl" />
+<head>
+  <link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+  <link href="http://fonts.googleapis.com/css?family=Arvo" rel="stylesheet" type="text/css" />
+  <link href="stylesheets/default.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/2.0/animate.min.css">
+  <script data-require="jquery@*" data-semver="2.1.1" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+  <script data-require="bootstrap@*" data-semver="3.1.1" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+  <script data-require="angular.js@1.2.17" data-semver="1.2.17" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.17/angular.min.js"></script>
+  <script data-require="angular-animate@1.2.17" data-semver="1.2.17" src="http://code.angularjs.org/1.2.17/angular-animate.js"></script>
+  <!-- Firebase -->
+  <script src="https://cdn.firebase.com/js/client/1.0.17/firebase.js"></script>
+  <!-- AngularFire Library -->
+  <script src="https://cdn.firebase.com/libs/angularfire/0.7.1/angularfire.min.js"></script>
+  <script src="https://cdn.firebase.com/libs/angularfire/0.7.1/angularfire.min.js"></script>
+  <script src="javascripts/main.js"></script>
+</head>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Journal</title>
-  </head>
-
-  <body>
-
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/Robert-Wett/journal">View on GitHub</a>
-
-          <h1 id="project_title">Journal</h1>
-          <h2 id="project_tagline">CLI app backed by cloud storage and a web front-end, inspired by jrnl</h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/Robert-Wett/journal/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/Robert-Wett/journal/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
+<body ng-app="MyJournal">
+  <!-- start header -->
+  <div id="header">
+    <div id="logo">
+      <h1><a href="#">my_journal</a></h1>
     </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h1>
-<a name="journal" class="anchor" href="#journal"><span class="octicon octicon-link"></span></a>journal</h1>
-
-<p>CLI app backed by cloud storage and a web front-end, inspired by <a href="http://maebert.github.io/jrnl/">jrnl</a></p>
-
-<p>The main difference will be the the obvious cloud storage to other places other than DayOne</p>
-      </section>
+    <div id="menu">
+      <ul>
+        <li class="active"><a href="#">Entries</a>
+        </li>
+        <li><a href="#">Tags</a>
+        </li>
+        <li><a href="#about">About</a>
+        </li>
+        <li><a href="#">Contact </a>
+        </li>
+      </ul>
     </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Journal maintained by <a href="https://github.com/Robert-Wett">Robert-Wett</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
+  </div>
+  <hr />
+  <!-- end header -->
+  <!-- start page -->
+  <div id="wrapper">
+    <div id="page">
+      <!-- start content -->
+      <div id="content" ng-controller="JournalController">
+        <div class="post" ng-repeat="entry in entries">
+          <p class="date">July<b>{{$index+1}}</p>
+          </p>
+          <p class="meta"><small>Posted by <a href="#">Robert-Wett</a> | <a href="#">Comments &raquo;</a></small>
+          </p>
+          <div class="entry">
+            {{entry.body}}
+          </div>
+        </div>
+        <!-- end content -->
+        <br style="clear: both;" />
+      </div>
     </div>
+    <!-- end page -->
+    <!-- start footer -->
+    <div id="footer">
+      <p id="legal">&copy;2012 Simplified . All Rights Reserved. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a href="http://templated.co" rel="nofollow">TEMPLATED</a>. Photos by <a href="http://fotogrph.com/">fotogrph</a>.</p>
+      <!-- end footer -->
+    </div>
+  </div>
+</body>
 
-    
-
-  </body>
 </html>
