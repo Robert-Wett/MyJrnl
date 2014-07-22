@@ -48,7 +48,7 @@
         <div class="post" ng-repeat="entry in entries | orderByPriority | orderBy:'sortHour':true">
           <p class="date">{{entry.month}}<b>{{entry.day}}</p>
           </p>
-          <p class="meta"><small>Posted by <a href="https://github.com/Robert-Wett">Robert-Wett</a> | - {{entry.hour}}&raquo;</a></small>
+          <p class="meta"><small>Posted by <a href="https://github.com/Robert-Wett">Robert-Wett</a> | @ {{entry.hour}}&raquo;</a></small>
           </p>
           <div class="entry">
             {{entry.body}}
