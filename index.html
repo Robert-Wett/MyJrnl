@@ -45,7 +45,7 @@
       <!-- start content -->
       <div id="content" ng-controller="JournalController">
         <h2 class="title" ng-show="showLoading">.......  loading entries  ........</h2>
-        <div class="post" ng-repeat="entry in entries | orderByPriority | orderBy:'sortDate':true">
+        <div class="post" ng-repeat="entry in entries | orderByPriority | orderBy:'sortHour':true">
           <p class="date">{{entry.month}}<b>{{entry.day}}</p>
           </p>
           <p class="meta"><small>Posted by <a href="https://github.com/Robert-Wett">Robert-Wett</a> | - {{entry.hour}}&raquo;</a></small>
