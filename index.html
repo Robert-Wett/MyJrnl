@@ -44,7 +44,7 @@
     <div id="page">
       <!-- start content -->
       <div id="content" ng-controller="JournalController">
-        <h2 ng-show="loading">.......  loading entries  ........</h2>
+        <h2 class="title" ng-show="showLoading">.......  loading entries  ........</h2>
         <div class="post" ng-repeat="entry in entries">
           <p class="date">July<b>{{$index+1}}</p>
           </p>
