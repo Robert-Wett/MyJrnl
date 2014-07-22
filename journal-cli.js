@@ -1,11 +1,13 @@
-var config   = require('./config.js').config
-  , program  = require('commander')
-  , Firebase = require('firebase')
-  , baseRef  = new Firebase(config.firebase)
-  , _        = require('underscore')
-  , entryRef = new Firebase(config.entries)
-  , Table    = require('cli-table')
-  , tags     = {};
+var config     = require('./config.js').config
+  , program    = require('commander')
+  , Firebase   = require('firebase')
+  , FBTokenGen = require('firebase-token-generator')
+  , baseRef    = new Firebase(config.firebase)
+  , _          = require('underscore')
+  , entryRef   = new Firebase(config.entries)
+  , Table      = require('cli-table')
+  , moment     = require('moment')
+  , tags       = {};
 
 
 program
@@ -53,14 +55,28 @@ function getTags(num) {
   });
 }
 
-function parseEntry(line) {
-  if (!line) return;
+function authenticate() {
+  var tokenGen = new FBTokenGen(config.secret)
+    , token    = tokenGen.createToken({ "isAdmin": true });
 
-  var words     = line.split(' ')
-    , tagQueue  = []
-    // jrnl does some basic time-stamping keywords like 'yesterday' or
-    // '3 pm' that resolves to a timestamp. Not hard, can do that later.
-    , time      = Date.now()
+  baseRef.auth(token, function(err) {
+    if (err) console.log(err);
+  });
+}
+
+function parseEntry(line) {
+  if (!line) {
+    return;
+  } else {
+    authenticate();
+  }
+
+  var words    = line.split(' ')
+    , entryRef = new Firebase(config.firebase + '/entries')
+    , tagQueue = []
+    , time     = moment()
+    , entryData
+    , postHandler
     , tagRef;
 
   _.each(words, function(word) {
@@ -86,6 +102,15 @@ function parseEntry(line) {
     tagRef.push({body: tagEntry[1]});
   });
 
-  entryRef.push({body: line, timestamp: Date.now()});
+  entryData = {
+    month: time.format('MMMM'),
+    day: time.format('DD'),
+    sortHour: time.format('H:mm'),
+    hour: time.format('h:mm a'),
+    body: line
+  };
+
+  postHandler = entryRef.push();
+  postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP);
 };
 
