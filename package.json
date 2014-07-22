@@ -6,9 +6,10 @@
   "scripts": {
     "test": "journal \"@node @programming building a node app\""
   },
-  "depedencies": {
+  "dependencies": {
     "commander": "*",
     "underscore": "*",
-    "firebase": "*"
+    "firebase": "*",
+    "moment": "^2.7.0"
   }
 }
