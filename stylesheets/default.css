@@ -503,6 +503,10 @@ hr {
 
 }
 
+div.entry a {
+  text-decoration: underline;
+}
+
 /* Transition animation */
 .repeat-animation.ng-enter-stagger,
 .repeat-animation.ng-leave-stagger,
