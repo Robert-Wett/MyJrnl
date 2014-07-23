@@ -553,3 +553,16 @@ div.entry a {
   from { opacity:1; }
   to { opacity:0; }
 }
+
+
+.blink {
+  animation: blink .8s steps(5, start) infinite;
+  -webkit-animation: blink .8s steps(5, start) infinite;
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+@-webkit-keyframes blink {
+  to { visibility: hidden; }
+}
+
