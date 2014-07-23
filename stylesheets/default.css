@@ -503,18 +503,49 @@ hr {
 
 }
 
-.ng-enter {
+/* Transition animation */
+.repeat-animation.ng-enter-stagger,
+.repeat-animation.ng-leave-stagger,
+.repeat-animation.ng-move-stagger {
+  /* notice how we're using animation instead of transition here */ 
+  -webkit-animation-delay:0.09s;
+  animation-delay:0.09s;
 
-  -webkit-transition: 1s;
-
-  transition: 1s;
-
-  opacity: 0;
-
+  /* yes we still need to do this too */
+  -webkit-animation-duration:0;
+  animation-duration:0;
 }
 
-.ng-enter-active {
+.repeat-animation.ng-enter {
+  -webkit-animation: enter_animation 0.9s;
+  animation: enter_animation 0.9s;
+}
+.repeat-animation.ng-leave {
+  -webkit-animation: leave_animation 0.9s;
+  animation: leave_animation 0.9s;
+}
 
-  opacity: 1;
+.repeat-animation.ng-enter {
+  /* pre-reflow animation styling */
+  opacity:0;
+}
 
+@-webkit-keyframes enter_animation {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@keyframes enter_animation {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+
+@-webkit-keyframes leave_animation {
+  from { opacity:1; }
+  to { opacity:0; }
+}
+
+@keyframes leave_animation {
+  from { opacity:1; }
+  to { opacity:0; }
 }
