@@ -12,12 +12,12 @@ var config     = require('./config.js').config
 
 program
   .version('0.0.1')
-  .option('-n, --number', 'See the last [number] of entries')
+  .option('-n, --number', 'See the last <number> of entries')
   .option('-t, --tag'   , 'See entries containing [tag]')
   .parse(process.argv);
 
 if (program.number) {
-  getEntries();
+  getEntries(+program.args[0]);
 } else if (program.tag) {
   getTags();
 } else {
@@ -33,9 +33,10 @@ function getEntries(num) {
   });
   var entryQuery = entryRef.limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry) {
-      table.push([entry.timestamp, entry.body]);
+      table.push([entry.month + ' ' + entry.day, entry.body]);
     });
     console.log(table.toString());
+    exitProcess();
   });
 }
 
@@ -112,6 +113,19 @@ function parseEntry(line) {
 
   postHandler = entryRef.push();
   postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
+}
+
+function getNextPriority() {
+  var currentPriority
+    , priorityRef = new Firebase(config.firebase + '/priority');
+
+  priorityRef.transaction(function(curVal) {
+    return curVal + 1;
+  }, function(error, committed, snapshot) {
+    currentPriority = snapshot.val();
+  });
+
+  return currentPriority;
 }
 
 function exitProcess(err) {
