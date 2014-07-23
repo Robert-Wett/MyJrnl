@@ -508,22 +508,21 @@ hr {
 .repeat-animation.ng-leave-stagger,
 .repeat-animation.ng-move-stagger {
   /* notice how we're using animation instead of transition here */ 
-  -webkit-animation-delay:0.06s;
-  animation-delay:0.06s;
+  -webkit-animation-delay:0.05s;
+  animation-delay:0.05s;
 
   /* yes we still need to do this too */
   -webkit-animation-duration:0;
   animation-duration:0;
 }
 
-
 .repeat-animation.ng-enter {
-  -webkit-animation: enter_animation 0.6s;
-  animation: enter_animation 0.6s;
+  -webkit-animation: enter_animation 0.5s;
+  animation: enter_animation 0.5s;
 }
 .repeat-animation.ng-leave {
-  -webkit-animation: leave_animation 0.6s;
-  animation: leave_animation 0.6s;
+  -webkit-animation: leave_animation 0.5s;
+  animation: leave_animation 0.5s;
 }
 
 .repeat-animation.ng-enter {
