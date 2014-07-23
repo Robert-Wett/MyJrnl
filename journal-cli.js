@@ -111,6 +111,14 @@ function parseEntry(line) {
   };
 
   postHandler = entryRef.push();
-  postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP);
-};
+  postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
+}
 
+function exitProcess(err) {
+  if (err) {
+    console.log("ERROR! - ", err);
+    process.exit(0);
+  }
+  else
+    process.exit(1);
+}
