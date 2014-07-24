@@ -507,6 +507,10 @@ div.entry a {
   text-decoration: underline;
 }
 
+img {
+  padding-top:10px;
+}
+
 /* Transition animation */
 .repeat-animation.ng-enter-stagger,
 .repeat-animation.ng-leave-stagger,
