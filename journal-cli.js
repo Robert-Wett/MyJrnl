@@ -64,6 +64,7 @@ function getTags(num) {
       });
     });
     console.log(table.toString());
+    exitProcess();
   });
 }
 
