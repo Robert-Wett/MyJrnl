@@ -22,8 +22,19 @@ if (program.number) {
   getTags();
 } else {
   parseEntry(process.argv[2]);
+  //console.log(getMediaLink(process.argv[2]));
 }
 
+function getMediaLink(line) {
+  var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg]{3,4}/i
+    , result = line.match(regex);
+
+  if (!!result) {
+    return result[0];
+  } else {
+    return '';
+  }
+}
 
 function getEntries(num) {
   num = num || 10;
@@ -77,6 +88,7 @@ function parseEntry(line) {
     , tagQueue = []
     , time     = moment()
     , entryData
+    , mediaData
     , postHandler
     , tagRef;
 
@@ -102,12 +114,15 @@ function parseEntry(line) {
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
   });
+  // Pull out the URL for imgur/media links
+  mediaData = getMediaLink(line);
 
   entryData = {
     month: time.format('MMMM'),
     day: time.format('DD'),
     sortHour: time.format('H:mm'),
     hour: time.format('h:mm a'),
+    media: mediaData,
     body: line
   };
 
