@@ -78,15 +78,20 @@ function authenticate() {
 
 function parseEntry(line) {
   if (!line) {
-    return;
+    exitProcess("You need to provide some input");
   } else {
     authenticate();
+    // Unless the tags are properly escaped, then strip them out.
+    // This is mostly to strip un-wanted esc chars needed to enter
+    // longer, more complicated strings into the command line
+    line = line.replace(/(\\)([!|;|"|`])|(;)/g, "$2");
+    line = line.replace("\n", " ");
   }
 
-  var words    = line.split(' ')
-    , entryRef = new Firebase(config.firebase + '/entries')
-    , tagQueue = []
-    , time     = moment()
+  var words     = line.split(' ')
+    , entryRef  = new Firebase(config.firebase + '/entries')
+    , time      = moment()
+    , tagQueue  = []
     , entryData
     , mediaData
     , postHandler
