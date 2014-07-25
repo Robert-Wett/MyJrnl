@@ -561,8 +561,8 @@ img {
 
 
 .blink {
-  animation: blink 1s steps(20, start) infinite;
-  -webkit-animation: blink 1s steps(20, start) infinite;
+  animation: blink 2.3s steps(20, start) infinite;
+  -webkit-animation: blink 2.3s steps(20, start) infinite;
 }
 @keyframes blink {
   from { opacity:.7; }
