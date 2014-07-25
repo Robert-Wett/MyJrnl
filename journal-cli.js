@@ -1,19 +1,19 @@
 var config     = require('./config.js').config
+  , _          = require('underscore')
   , program    = require('commander')
   , Firebase   = require('firebase')
   , FBTokenGen = require('firebase-token-generator')
-  , baseRef    = new Firebase(config.firebase)
-  , _          = require('underscore')
-  , entryRef   = new Firebase(config.entries)
   , Table      = require('cli-table')
   , moment     = require('moment')
-  , tags       = {};
+  , baseRef    = new Firebase(config.firebase)
+  , entryRef   = new Firebase(config.entries);
 
 
 program
   .version('0.0.1')
-  .option('-n, --number', 'See the last <number> of entries')
-  .option('-t, --tag'   , 'See entries containing [tag]')
+  .option('-n, --number'   , 'See the last <number> of entries')
+  .option('-t, --tag'      , 'See entries containing [tag]')
+  .option('-todo, --tag'   , 'Add an entry to the TODO section')
   .parse(process.argv);
 
 if (program.number) {
@@ -22,7 +22,6 @@ if (program.number) {
   getTags();
 } else {
   parseEntry(process.argv[2]);
-  //console.log(getMediaLink(process.argv[2]));
 }
 
 function getMediaLink(line) {
@@ -106,7 +105,7 @@ function parseEntry(line) {
       tagQueue[tagEntry[0]].push(tagEntry[1]);
     }
     else {
-      tags[tagEntry[0]] = [tagEntry[1]];
+      tagQueue[tagEntry[0]] = [tagEntry[1]];
     }
   });
 
@@ -115,6 +114,7 @@ function parseEntry(line) {
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
   });
+
   // Pull out the URL for imgur/media links
   mediaData = getMediaLink(line);
 
