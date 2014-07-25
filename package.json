@@ -10,8 +10,8 @@
     "commander": "*",
     "underscore": "*",
     "firebase": "*",
-    "moment": "^2.7.0",
-    "firebase-token-generator": "^1.1.2",
-    "cli-table": "^0.3.0"
+    "moment": "2.7.0",
+    "firebase-token-generator": "1.1.2",
+    "cli-table": "0.3.0"
   }
 }
