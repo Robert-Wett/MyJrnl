@@ -68,13 +68,13 @@ function getTags(num) {
   });
 }
 
+/**
+ * Use the firebase assigned secret to generate a token based
+ * on an object that can be pulled out in firebase rules for
+ * determining privs.
+ * `".write": "auth.isAdmin == true"`
+ */
 function authenticate() {
-  /**
-   * Use the firebase assigned secret to generate a token based
-   * on an object that can be pulled out in firebase rules for
-   * determining privs.
-   * `".write": "auth.isAdmin == true"`
-   */
   var tokenGen = new FBTokenGen(config.secret)
     , token    = tokenGen.createToken({ "isAdmin": true });
 
