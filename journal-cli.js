@@ -7,6 +7,7 @@ var config     = require('./config.js').config
   , moment     = require('moment')
   , baseRef    = new Firebase(config.firebase)
   , entryRef   = new Firebase(config.entries);
+  //, noop       = function(){};
 
 
 program
@@ -77,6 +78,15 @@ function authenticate() {
 }
 
 function parseEntry(line) {
+  var escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
+    , postHandler
+    , entryData
+    , mediaData
+    , entryRef
+    , tagQueue
+    , tagRef
+    , time;
+
   if (!line) {
     exitProcess("You need to provide some input");
   } else {
@@ -84,18 +94,13 @@ function parseEntry(line) {
     // Unless the tags are properly escaped, then strip them out.
     // This is mostly to strip un-wanted esc chars needed to enter
     // longer, more complicated strings into the command line
-    line = line.replace(/(\\)([!|;|"|`])|(;)/g, "$2");
+    line = line.replace(escRegex, "$2");
     line = line.replace("\n", " ");
   }
 
-  var words     = line.split(' ')
-    , entryRef  = new Firebase(config.firebase + '/entries')
-    , time      = moment()
-    , tagQueue  = []
-    , entryData
-    , mediaData
-    , postHandler
-    , tagRef;
+  entryRef = new Firebase(config.firebase + '/entries');
+  words    = line.split(' ');
+  time     = moment();
 
   _.each(words, function(word) {
     if (word[0] === '@' && typeof word[1] !== "undefined") {
