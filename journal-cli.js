@@ -107,6 +107,7 @@ function parseEntry(line) {
   entryRef = new Firebase(config.firebase + '/entries');
   words    = line.split(' ');
   time     = moment();
+  tagQueue = [];
 
   _.each(words, function(word) {
     if (word[0] === '@' && typeof word[1] !== "undefined") {
