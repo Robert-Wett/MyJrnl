@@ -12,6 +12,7 @@
     "firebase": "*",
     "moment": "2.7.0",
     "firebase-token-generator": "1.1.2",
-    "cli-table": "0.3.0"
+    "cli-table": "0.3.0",
+    "chalk": "^0.5.1"
   }
 }
