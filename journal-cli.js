@@ -1,13 +1,12 @@
-var config     = require('./config.js').config
-  , _          = require('underscore')
-  , size       = require('window-size')
-  , program    = require('commander')
+var FBTokenGen = require('firebase-token-generator')
   , Firebase   = require('firebase')
-  , FBTokenGen = require('firebase-token-generator')
+  , program    = require('commander')
+  , config     = require('./config.js').config
+  , moment     = require('moment')
   , Table      = require('cli-table')
   , chalk      = require('chalk')
-  , moment     = require('moment');
-  //, noop       = function(){};
+  , size       = require('window-size')
+  , _          = require('underscore');
 
 
 program
@@ -25,8 +24,6 @@ if (program.number) {
   getTags();
 } else if (program.btc) {
   getBtc();
-//} else if (program.test) {
-//  console.log(terminalFormat(process.argv[3]))
 } else {
   parseEntry(process.argv[2]);
 }
@@ -46,6 +43,7 @@ function getBtc() {
   });
 }
 
+
 function getMediaLink(line) {
   var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg]{3,4}/i
     , result = line.match(regex);
@@ -64,9 +62,9 @@ function getEntries(num) {
     , table
     , entryRef;
 
-  num = num || 10;
-  tableDim = computeTableSize();
+  tableDim  = computeTableSize();
   singleCol = tableDim[0] === false;
+  num       = num || 10;
 
   if (singleCol) {
     table = new Table({
