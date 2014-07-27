@@ -1,5 +1,6 @@
 var config     = require('./config.js').config
   , _          = require('underscore')
+  , size       = require('window-size')
   , program    = require('commander')
   , Firebase   = require('firebase')
   , FBTokenGen = require('firebase-token-generator')
@@ -38,9 +39,9 @@ if (program.number) {
 function getBtc() {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin");
   btcRef.child("last").on("value", function(snap) {
-    console.log("Current " + chalk.underline("BTC")
-                + " price in " + chalk.underline("USD")
-                + ": " + chalk.green.bold("$" + snap.val()));
+    console.log("Current "     + chalk.underline("BTC") +
+                " price in " + chalk.underline("USD")   +
+                ": " + chalk.green.bold("$" + snap.val()));
     exitProcess();
   });
 }
@@ -58,22 +59,40 @@ function getMediaLink(line) {
 
 function getEntries(num) {
   var entryQuery
+    , tableDim
+    , singleCol
     , table
     , entryRef;
 
   num = num || 10;
-  table = new Table({
-    head: ['Date', 'Body'],
-    colWidths: [9, 71]
-  });
+  tableDim = computeTableSize();
+  singleCol = tableDim[0] === false;
+
+  if (singleCol) {
+    table = new Table({
+      head: ['Body'],
+      colWidths: [tableDim[1]]
+    });
+  } else {
+    table = new Table({
+      head: ['Date', 'Body'],
+      colWidths: [tableDim[0], tableDim[1]]
+    });
+  }
 
   entryRef = new Firebase(config.entries);
   entryQuery = entryRef.limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry) {
-      table.push([
-        entry.month + '\n' + entry.day,
-        terminalFormat(entry.body.replace(/\n/g, ''))
-      ]);
+      if (singleCol) {
+        table.push([
+          terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
+        ]);
+      } else {
+        table.push([
+          entry.month + '\n' + entry.day,
+          terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
+        ]);
+      }
     });
     console.log(table.toString());
     exitProcess();
@@ -216,6 +235,20 @@ function terminalFormat(sentence, width) {
   });
 
   return formattedSentence.join(" ");
+}
+
+function computeTableSize() {
+  var width = size.width
+    , height= size.height;
+
+  if (width < 80) {
+    // Super small, dis-regard the dates
+    return [false, width];
+  } else {
+    // 9 seems to be the magic number to format
+    // longer date names, like September.
+    return [9, width - 14];
+  }
 }
 
 function exitProcess(err) {
