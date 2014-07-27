@@ -4,25 +4,45 @@ var config     = require('./config.js').config
   , Firebase   = require('firebase')
   , FBTokenGen = require('firebase-token-generator')
   , Table      = require('cli-table')
-  , moment     = require('moment')
-  , baseRef    = new Firebase(config.firebase)
-  , entryRef   = new Firebase(config.entries);
+  , chalk      = require('chalk')
+  , moment     = require('moment');
   //, noop       = function(){};
 
 
 program
   .version('0.0.1')
-  .option('-n, --number'   , 'See the last <number> of entries')
-  .option('-t, --tag'      , 'See entries containing [tag]')
-  .option('-todo, --tag'   , 'Add an entry to the TODO section')
+  .option('-n, --number', 'See the last <number> of entries')
+  .option('-t, --tag',    'See entries containing [tag]')
+  .option('-T, --todo',   'Add an entry to the TODO section')
+  .option('-b, --btc',    'Check the current BTC price in USD')
+  //.option('-x, --test',   'Experimental thing')
   .parse(process.argv);
 
 if (program.number) {
   getEntries(+program.args[0]);
 } else if (program.tag) {
   getTags();
+} else if (program.btc) {
+  getBtc();
+//} else if (program.test) {
+//  console.log(terminalFormat(process.argv[3]))
 } else {
   parseEntry(process.argv[2]);
+}
+
+/**
+ * This is a free entry point firebase provides that syncs with
+ * coinbase. It's easy to add so I figured I'd put it in, seeing
+ * as how I often check the prices
+ */
+function getBtc() {
+  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin");
+  btcRef.child("last").on("value", function(snap) {
+    console.log("Current " + chalk.underline("BTC")
+                + " price in " + chalk.underline("USD")
+                + ": " + chalk.green.bold("$" + snap.val()));
+    exitProcess();
+  });
 }
 
 function getMediaLink(line) {
@@ -37,14 +57,23 @@ function getMediaLink(line) {
 }
 
 function getEntries(num) {
+  var entryQuery
+    , table
+    , entryRef;
+
   num = num || 10;
-  var table = new Table({
+  table = new Table({
     head: ['Date', 'Body'],
-    colWidths: [15, 100]
+    colWidths: [9, 71]
   });
-  var entryQuery = entryRef.limit(num).once('value', function(snap) {
+
+  entryRef = new Firebase(config.entries);
+  entryQuery = entryRef.limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry) {
-      table.push([entry.month + ' ' + entry.day, entry.body]);
+      table.push([
+        entry.month + '\n' + entry.day,
+        terminalFormat(entry.body.replace(/\n/g, ''))
+      ]);
     });
     console.log(table.toString());
     exitProcess();
@@ -52,15 +81,22 @@ function getEntries(num) {
 }
 
 function getTags(num) {
+  var tagQuery
+    , table
+    , baseRef;
+
   num = num || 10;
-  var table = new Table({
+
+  table = new Table({
     head: ['Tag', 'Entry'],
     colWidths: [10, 100]
   });
-  var entryQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
+
+  baseRef = new Firebase(config.firebase);
+  tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry, key, list) {
       _.each(entry, function(entryVal) {
-        table.push([key, entryVal.body]);
+        table.push([key, formatTerminal(entryVal.body)]);
       });
     });
     console.log(table.toString());
@@ -75,7 +111,8 @@ function getTags(num) {
  * `".write": "auth.isAdmin == true"`
  */
 function authenticate() {
-  var tokenGen = new FBTokenGen(config.secret)
+  var baseRef  = new Firebase(config.firebase)
+    , tokenGen = new FBTokenGen(config.secret)
     , token    = tokenGen.createToken({ "isAdmin": true });
 
   baseRef.auth(token, function(err) {
@@ -91,20 +128,22 @@ function parseEntry(line) {
     , entryRef
     , tagQueue
     , tagRef
+    , words
     , time;
 
   if (!line) {
     exitProcess("You need to provide some input");
   } else {
     authenticate();
-    // Unless the tags are properly escaped, then strip them out.
-    // This is mostly to strip un-wanted esc chars needed to enter
-    // longer, more complicated strings into the command line
-    line = line.replace(escRegex, "$2");
-    line = line.replace("\n", " ");
   }
 
   entryRef = new Firebase(config.firebase + '/entries');
+  // Unless the tags are properly escaped, then strip them out.
+  // This is mostly to strip un-wanted esc chars needed to enter
+  // longer, more complicated strings into the command line
+  line     = line.replace(escRegex, "$2");
+  line     = line.replace('\n', '');
+  line     = line.trim();
   words    = line.split(' ');
   time     = moment();
   tagQueue = [];
@@ -161,9 +200,27 @@ function getNextPriority() {
   return currentPriority;
 }
 
+function terminalFormat(sentence, width) {
+  var formattedSentence = []
+    , width             = width || 60
+    , count             = 0;
+
+  _.each(sentence.split(' '), function(word) {
+    if (count + word.length > width) {
+      formattedSentence.push('\n' + word);
+      count = 0;
+    } else {
+      formattedSentence.push(word);
+      count += word.length + 1;
+    }
+  });
+
+  return formattedSentence.join(" ");
+}
+
 function exitProcess(err) {
   if (err) {
-    console.log("ERROR! - ", err);
+    console.log("Woops - ", err);
     process.exit(0);
   }
   else
