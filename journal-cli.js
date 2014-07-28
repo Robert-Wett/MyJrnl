@@ -23,7 +23,7 @@ if (program.number) {
 } else if (program.tag) {
   getTags();
 } else if (program.btc) {
-  getBtc();
+  getBtc(program.args[0]);
 } else {
   parseEntry(process.argv[2]);
 }
@@ -33,12 +33,21 @@ if (program.number) {
  * coinbase. It's easy to add so I figured I'd put it in, seeing
  * as how I often check the prices
  */
-function getBtc() {
-  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin");
+function getBtc(amount) {
+  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
+    , btcPrice;
   btcRef.child("last").on("value", function(snap) {
-    console.log("Current "     + chalk.underline("BTC") +
-                " price in " + chalk.underline("USD")   +
-                ": " + chalk.green.bold("$" + snap.val()));
+    btcPrice = snap.val();
+
+    if (amount) {
+      console.log(chalk.bold(amount) + " is worth " +
+                  chalk.bold.green("$" + btcPrice * amount));
+    } else {
+      console.log("Current "   + chalk.underline("BTC") +
+                  " price in " + chalk.underline("USD") +
+                  ": " + chalk.green.bold("$" + btcPrice));
+    }
+
     exitProcess();
   });
 }
@@ -183,6 +192,7 @@ function parseEntry(line) {
   });
 
   _.each(tagQueue, function(tagEntry) {
+    addTagIfNotExists(tagEntry[0]);
     tagRef = new Firebase(config.firebase + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
@@ -202,6 +212,24 @@ function parseEntry(line) {
 
   postHandler = entryRef.push();
   postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
+}
+
+/**
+ * Pass in a tag/string to see if exists already.
+ */
+function addTagIfNotExists(tag) {
+  var tagRef = new Firebase(config.firebase + '/tag_list/' + tag)
+    , data;
+
+  authenticate();
+
+  tagRef.once('value', function(snap) {
+    if (snap.val() === null) {
+      tagRef.set(1);
+    } else {
+      tagRef.set(snap.val() + 1);
+    }
+  });
 }
 
 function getNextPriority() {
