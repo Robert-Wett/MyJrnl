@@ -130,7 +130,7 @@ function getTags(num) {
   tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
     _.each(snap.val(), function(entry, key, list) {
       _.each(entry, function(entryVal) {
-        table.push([key, formatTerminal(entryVal.body)]);
+        table.push([key, terminalFormat(entryVal.body)]);
       });
     });
     console.log(table.toString());
