@@ -52,7 +52,11 @@ function getBtc(amount) {
   });
 }
 
-
+/**
+ * Checks if the entry contains a valid imgur (DIRECT) link. Returns the
+ * link if it does, otherwise a blank string. The angular front-end displays
+ * the link if and only if the 'entry.media' entry isn't a blank string.
+ */
 function getMediaLink(line) {
   var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg]{3,4}/i
     , result = line.match(regex);
@@ -64,6 +68,10 @@ function getMediaLink(line) {
   }
 }
 
+/**
+ * Get the last journal entries committed. Pass in a number to define
+ * the amount of entries to display, starting from the latest entry.
+ */
 function getEntries(num) {
   var entryQuery
     , tableDim
@@ -146,6 +154,9 @@ function authenticate() {
   });
 }
 
+/**
+ * Main method to take input and store it in firebase.
+ */
 function parseEntry(line) {
   var escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
     , postHandler
@@ -192,7 +203,7 @@ function parseEntry(line) {
   });
 
   _.each(tagQueue, function(tagEntry) {
-    addTagIfNotExists(tagEntry[0]);
+    addToTagCount(tagEntry[0]);
     tagRef = new Firebase(config.firebase + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
@@ -215,9 +226,9 @@ function parseEntry(line) {
 }
 
 /**
- * Pass in a tag/string to see if exists already.
+ * Update the list of tags that just tracks the count
  */
-function addTagIfNotExists(tag) {
+function addToTagCount(tag) {
   var tagRef = new Firebase(config.firebase + '/tag_list/' + tag)
     , data;
 
@@ -245,6 +256,10 @@ function getNextPriority() {
   return currentPriority;
 }
 
+/**
+ * Takes a long sentence and returns one formatted to fit
+ * within the current terminal size.
+ */
 function terminalFormat(sentence, width) {
   var formattedSentence = []
     , width             = width || 60
@@ -263,6 +278,10 @@ function terminalFormat(sentence, width) {
   return formattedSentence.join(" ");
 }
 
+/**
+ * Helper method that returns the proper dimensions for the CLI-Table
+ * based on the current TTY window size as the command was issued.
+ */
 function computeTableSize() {
   var width = size.width
     , height= size.height;
@@ -277,6 +296,9 @@ function computeTableSize() {
   }
 }
 
+/**
+ * Callback function to close out the node process
+ */
 function exitProcess(err) {
   if (err) {
     console.log("Woops - ", err);
