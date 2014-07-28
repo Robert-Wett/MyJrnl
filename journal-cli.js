@@ -207,6 +207,8 @@ function parseEntry(line) {
     tagRef = new Firebase(config.firebase + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
+    //tagRef.push();
+    //tagRef.setWithPriority({body: tagEntry[1]}, Firebase.ServerValue.TIMESTAMP);
   });
 
   // Pull out the URL for imgur/media links
@@ -229,7 +231,7 @@ function parseEntry(line) {
  * Update the list of tags that just tracks the count
  */
 function addToTagCount(tag) {
-  var tagRef = new Firebase(config.firebase + '/tag_list/' + tag)
+  var tagRef = new Firebase(config.firebase + '/tag_count/' + tag)
     , data;
 
   authenticate();
