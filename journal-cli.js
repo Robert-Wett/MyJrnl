@@ -1,6 +1,7 @@
 var FBTokenGen = require('firebase-token-generator')
   , Firebase   = require('firebase')
   , program    = require('commander')
+  , Promise    = require('promise')
   , config     = require('./config.js').config
   , moment     = require('moment')
   , Table      = require('cli-table')
@@ -15,18 +16,61 @@ program
   .option('-t, --tag',    'See entries containing [tag]')
   .option('-T, --todo',   'Add an entry to the TODO section')
   .option('-b, --btc',    'Check the current BTC price in USD')
-  //.option('-x, --test',   'Experimental thing')
+  .option('-x, --test',   'Experimental thing')
   .parse(process.argv);
 
 if (program.number) {
-  getEntries(+program.args[0]);
+  getEntries(+program.args[0])
+  .then(function(tableString) {
+    console.log(tableString);
+    exitProcess();
+  });
 } else if (program.tag) {
-  getTags();
+  getTags(10, program.args[0]);
 } else if (program.btc) {
-  getBtc(program.args[0]);
+  getBtc(+program.args[0]);
+} else if (program.test) {
+  getSortedTagList(program.args[0])
+  .then(function(tagArray) {
+    _.each(tagArray, function(tagPair) {
+      console.log(tagPair[0], tagPair[1]);
+    })
+    exitProcess();
+  });
 } else {
   parseEntry(process.argv[2]);
 }
+
+
+/**
+ * Get a list of all saved tags and their count, sorted
+ * from highest count to lowest count.
+ *
+ * returns a promise.
+ */
+function getSortedTagList(input) {
+  var tagCountRef = new Firebase(config.firebase + '/tag_count/')
+    , tagArray    = [];
+
+  return new Promise(function(resolve, reject) {
+    tagCountRef.on('value', function(tags) {
+      tags.forEach(function(childVal) {
+        tagArray.push([childVal.name(), childVal.val()]);
+      });
+
+      tagArray.sort(function(a, b) {
+        if (a[1] > b[1])
+          return -1;
+        if (a[1] < b[1])
+          return 1;
+        return 0;
+      });
+
+      resolve(tagArray);
+    });
+  });
+}
+
 
 /**
  * This is a free entry point firebase provides that syncs with
@@ -36,6 +80,7 @@ if (program.number) {
 function getBtc(amount) {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
     , btcPrice;
+
   btcRef.child("last").on("value", function(snap) {
     btcPrice = snap.val();
 
@@ -61,20 +106,20 @@ function getMediaLink(line) {
   var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg]{3,4}/i
     , result = line.match(regex);
 
-  if (!!result) {
+  if (!!result)
     return result[0];
-  } else {
-    return '';
-  }
+
+  return '';
 }
 
 /**
  * Get the last journal entries committed. Pass in a number to define
  * the amount of entries to display, starting from the latest entry.
+ *
+ * returns: promise.
  */
 function getEntries(num) {
-  var entryQuery
-    , tableDim
+  var tableDim
     , singleCol
     , table
     , entryRef;
@@ -96,46 +141,72 @@ function getEntries(num) {
   }
 
   entryRef = new Firebase(config.entries);
-  entryQuery = entryRef.limit(num).once('value', function(snap) {
-    _.each(snap.val(), function(entry) {
-      if (singleCol) {
-        table.push([
-          terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
-        ]);
-      } else {
-        table.push([
-          entry.month + '\n' + entry.day,
-          terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
-        ]);
-      }
+  return new Promise(function(resolve, reject) {
+    entryRef.limit(num).once('value', function(snap) {
+      _.each(snap.val(), function(entry) {
+        if (singleCol) {
+          table.push([
+            terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
+          ]);
+        } else {
+          table.push([
+            entry.month + '\n' + entry.day,
+            terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
+          ]);
+        }
+      });
+
+      resolve(table.toString());
     });
-    console.log(table.toString());
-    exitProcess();
-  });
+  })
 }
 
-function getTags(num) {
+function getTags(num, tagName) {
   var tagQuery
+    , tableDim
+    , entryWidth
     , table
     , baseRef;
 
-  num = num || 10;
-
-  table = new Table({
-    head: ['Tag', 'Entry'],
-    colWidths: [10, 100]
-  });
-
   baseRef = new Firebase(config.firebase);
-  tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
-    _.each(snap.val(), function(entry, key, list) {
-      _.each(entry, function(entryVal) {
-        table.push([key, terminalFormat(entryVal.body)]);
-      });
+  num     = num || 10;
+
+  if (tagName) {
+    entryWidth = size.width - 10;
+
+    table = new Table({
+      head: [tagName],
+      colWidths: [entryWidth]
     });
-    console.log(table.toString());
-    exitProcess();
-  });
+
+    tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
+      _.each(snap.val(), function(entry) {
+        table.push([terminalFormat(entry.body, entryWidth)]);
+      });
+      console.log(table.toString());
+      exitProcess();
+    });
+
+  } else {
+
+    tableDim = computeTableSize();
+
+    table = new Table({
+      head: ['Tag Name', 'Body'],
+      colWidths: [tableDim[0], tableDim[1]]
+    });
+
+    tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
+      _.each(snap.val(), function(entry, key) {
+        _.each(entry, function(entryVal) {
+          table.push([key, terminalFormat(entryVal.body, tableDim[1])]);
+        });
+      });
+      console.log(table.toString());
+      exitProcess();
+    });
+
+  }
 }
 
 /**
@@ -237,11 +308,7 @@ function addToTagCount(tag) {
   authenticate();
 
   tagRef.once('value', function(snap) {
-    if (snap.val() === null) {
-      tagRef.set(1);
-    } else {
-      tagRef.set(snap.val() + 1);
-    }
+    tagRef.set((snap.val() || 0) + 1);
   });
 }
 
@@ -268,6 +335,11 @@ function terminalFormat(sentence, width) {
     , count             = 0;
 
   _.each(sentence.split(' '), function(word) {
+    // Add highlighting to tag words
+    if (word[0] === '@' && word[0] !== "undefined") {
+      word = chalk.bold.underline(word);
+    }
+
     if (count + word.length > width) {
       formattedSentence.push('\n' + word);
       count = 0;
@@ -285,8 +357,8 @@ function terminalFormat(sentence, width) {
  * based on the current TTY window size as the command was issued.
  */
 function computeTableSize() {
-  var width = size.width
-    , height= size.height;
+  var width  = size.width
+    , height = size.height;
 
   if (width < 80) {
     // Super small, dis-regard the dates
