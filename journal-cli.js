@@ -17,6 +17,7 @@ program
   .option('-T, --todo',   'Add an entry to the TODO section')
   .option('-b, --btc',    'Check the current BTC price in USD')
   .option('-x, --test',   'Experimental thing')
+  .option('--taglist',    'List all tags and their count')
   .parse(process.argv);
 
 if (program.number) {
@@ -26,15 +27,31 @@ if (program.number) {
     exitProcess();
   });
 } else if (program.tag) {
-  getTags(10, program.args[0]);
+  //getTags(10, program.args[0]);
+  getTagsWithPromise(10, program.args[0]).then(
+    function(tableString) {
+      console.log(tableString);
+      exitProcess();
+    },
+    function(err) {
+      console.log(err);
+      exitProcess();
+    }
+  );
 } else if (program.btc) {
   getBtc(+program.args[0]);
+} else if (program.taglist) {
+  getSortedTagList(program.args[0])
+  .then(function(tableString) {
+    console.log(tableString);
+
+    exitProcess();
+  });
 } else if (program.test) {
   getSortedTagList(program.args[0])
-  .then(function(tagArray) {
-    _.each(tagArray, function(tagPair) {
-      console.log(tagPair[0], tagPair[1]);
-    })
+  .then(function(tableString) {
+    console.log(tableString);
+
     exitProcess();
   });
 } else {
@@ -50,11 +67,17 @@ if (program.number) {
  */
 function getSortedTagList(input) {
   var tagCountRef = new Firebase(config.firebase + '/tag_count/')
-    , tagArray    = [];
+    , tagArray    = []
+    , longest     = 0
+    , table;
 
   return new Promise(function(resolve, reject) {
     tagCountRef.on('value', function(tags) {
       tags.forEach(function(childVal) {
+        if (childVal.name().length > longest) {
+          longest = childVal.name().length;
+        }
+
         tagArray.push([childVal.name(), childVal.val()]);
       });
 
@@ -66,7 +89,16 @@ function getSortedTagList(input) {
         return 0;
       });
 
-      resolve(tagArray);
+      table = new Table({
+        head: ['Tag', 'Count'],
+        colWidths: [longest + 2, 10]
+      });
+
+      _.each(tagArray, function(tag) {
+        table.push([tag[0], tag[1]]);
+      });
+
+      resolve(table.toString());
     });
   });
 }
@@ -161,12 +193,75 @@ function getEntries(num) {
   })
 }
 
-function getTags(num, tagName) {
-  var tagQuery
+function getTagsWithPromise(num, tagName) {
+  var entryWidth
+    , tagEntries
+    , tagQuery
     , tableDim
-    , entryWidth
-    , table
-    , baseRef;
+    , baseRef
+    , table;
+
+  baseRef = new Firebase(config.firebase);
+  num     = num || 10;
+
+  return new Promise(function(resolve, reject) {
+    if (tagName) {
+      entryWidth = size.width - 10;
+
+      table = new Table({
+        head: [tagName],
+        colWidths: [entryWidth]
+      });
+
+      tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
+        tagEntries = snap.val();
+
+        if (!!tagEntries) {
+          _.each(snap.val(), function(entry) {
+            table.push([terminalFormat(entry.body, entryWidth)]);
+          });
+
+          resolve(table.toString());
+        } else {
+          reject('No tag entries found for tag name: ' + chalk.bold.underline(tagName));
+        }
+      });
+
+    } else {
+
+      tableDim = computeTableSize();
+
+      table = new Table({
+        head: ['Tag Name', 'Body'],
+        colWidths: [tableDim[0], tableDim[1]]
+      });
+
+      tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
+        _.each(snap.val(), function(entry, key) {
+          _.each(entry, function(entryVal) {
+            table.push([key, terminalFormat(entryVal.body, tableDim[1])]);
+          });
+        });
+
+        resolve(table.toString());
+      });
+    }
+  });
+}
+
+
+/**
+ * Retrieve all tag's and their respective entries. If a `tagName` object
+ * is passed in, then only the entries for that tag will be displayed - otherwise,
+ * all tags and their entries are displayed.
+ */
+function getTags(num, tagName) {
+  var entryWidth
+    , tagEntries
+    , tagQuery
+    , tableDim
+    , baseRef
+    , table;
 
   baseRef = new Firebase(config.firebase);
   num     = num || 10;
@@ -180,10 +275,18 @@ function getTags(num, tagName) {
     });
 
     tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
-      _.each(snap.val(), function(entry) {
-        table.push([terminalFormat(entry.body, entryWidth)]);
-      });
-      console.log(table.toString());
+      tagEntries = snap.val();
+
+      if (!!tagEntries) {
+        _.each(snap.val(), function(entry) {
+          table.push([terminalFormat(entry.body, entryWidth)]);
+        });
+
+        console.log(table.toString());
+      } else {
+        console.log('No tag entries found for tag name: ' + chalk.bold.underline(tagName));
+      }
+
       exitProcess();
     });
 
