@@ -2,18 +2,12 @@ var FBTokenGen = require('firebase-token-generator')
   , Firebase   = require('firebase')
   , program    = require('commander')
   , Promise    = require('promise')
-  , Spinner    = require('cli-spinner').Spinner
-  , spinner    = new Spinner('fetching..')
   , config     = require('./config.js').config
   , moment     = require('moment')
   , Table      = require('cli-table')
   , chalk      = require('chalk')
   , size       = require('window-size')
   , _          = require('underscore');
-
-// Set up the spinner
-spinner.setSpinnerString('/-\\');
-
 
 program
   .version('0.0.1')
@@ -33,15 +27,12 @@ if (program.number) {
     exitProcess();
   });
 } else if (program.tag) {
-  //getTags(10, program.args[0]);
-  getTagsWithPromise(10, program.args[0]).then(
+  getTags(10, program.args[0]).then(
     function(tableString) {
       console.log(tableString);
       exitProcess();
-    },
-    function(err) {
-      console.log(err);
-      exitProcess();
+    }, function(err) {
+      exitProcess(err);
     }
   );
 } else if (program.btc) {
@@ -50,18 +41,12 @@ if (program.number) {
   getSortedTagList(program.args[0])
   .then(function(tableString) {
     console.log(tableString);
-
     exitProcess();
   });
 } else if (program.test) {
-  getSortedTagList(program.args[0])
-  .then(function(tableString) {
-    console.log(tableString);
-
-    exitProcess();
-  });
+  exitProcess("Nothing here atm");
 } else if (program.btcfeed) {
-  getBtcFeed();
+  getBtcFeed(+program.args[0]);
 } else {
   parseEntry(process.argv[2]);
 }
@@ -101,7 +86,6 @@ function getSortedTagList(input) {
 
       if (size.height < 20) {
         _.each(tagArray, function(tag) {
-          //delimited.push(chalk.blue.bold(tag[0]) + " -> " + chalk.red.underline(tag[1]));
           delimited.push(chalk.dim(" (") + chalk.red(tag[1]) + chalk.dim(")") + chalk.bold.blue(tag[0]));
         });
 
@@ -126,9 +110,7 @@ function getSortedTagList(input) {
 
 
 /**
- * This is a free entry point firebase provides that syncs with
- * coinbase. It's easy to add so I figured I'd put it in, seeing
- * as how I often check the prices
+ * Track the ASK/BID and LAST BTC prices as they come in, in 'real-time'.
  */
 function getBtcFeed(amount) {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
@@ -141,11 +123,14 @@ function getBtcFeed(amount) {
   handler = function(snap, refType, amount ) {
     btcPrice = snap.val();
 
+    //TODO: Set the LAST color to red if deficit, green if positive ;););)(;/)S
     if (amount) {
-      console.log(refType.toUpperCase() + ": " + chalk.bold(amount) + " is worth " +
+      console.log((refType === last ? chalk.bold.red.underline(refType.toUpperCase()) : refType.toUpperCase()) +
+                  ": " + chalk.bold(amount) + " is worth " +
                   chalk.bold.green("$" + btcPrice * amount));
     } else {
-      console.log(refType.toUpperCase() + ": Current " +  chalk.underline("BTC") +
+      console.log((refType === last ? chalk.bold.red.underline(refType.toUpperCase()) : refType.toUpperCase()) +
+                  ": Current " +  chalk.underline("BTC") +
                   " price in " + chalk.underline("USD") +
                   ": " + chalk.green.bold("$" + btcPrice));
     }
@@ -251,10 +236,17 @@ function getEntries(num) {
 
       resolve(table.toString());
     });
-  })
+  });
 }
 
-function getTagsWithPromise(num, tagName) {
+/**
+ * Retrieve all tag's and their respective entries. If a `tagName` object
+ * is passed in, then only the entries for that tag will be displayed - otherwise,
+ * all tags and their entries are displayed.
+ *
+ * Returns a promise which resolves to a string
+ */
+function getTags(num, tagName) {
   var entryWidth
     , tagEntries
     , tagQuery
@@ -310,68 +302,6 @@ function getTagsWithPromise(num, tagName) {
   });
 }
 
-
-/**
- * Retrieve all tag's and their respective entries. If a `tagName` object
- * is passed in, then only the entries for that tag will be displayed - otherwise,
- * all tags and their entries are displayed.
- */
-function getTags(num, tagName) {
-  var entryWidth
-    , tagEntries
-    , tagQuery
-    , tableDim
-    , baseRef
-    , table;
-
-  baseRef = new Firebase(config.firebase);
-  num     = num || 10;
-
-  if (tagName) {
-    entryWidth = size.width - 10;
-
-    table = new Table({
-      head: [tagName],
-      colWidths: [entryWidth]
-    });
-
-    tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
-      tagEntries = snap.val();
-
-      if (!!tagEntries) {
-        _.each(snap.val(), function(entry) {
-          table.push([terminalFormat(entry.body, entryWidth)]);
-        });
-
-        console.log(table.toString());
-      } else {
-        console.log('No tag entries found for tag name: ' + chalk.bold.underline(tagName));
-      }
-
-      exitProcess();
-    });
-
-  } else {
-
-    tableDim = computeTableSize();
-
-    table = new Table({
-      head: ['Tag Name', 'Body'],
-      colWidths: [tableDim[0], tableDim[1]]
-    });
-
-    tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
-      _.each(snap.val(), function(entry, key) {
-        _.each(entry, function(entryVal) {
-          table.push([key, terminalFormat(entryVal.body, tableDim[1])]);
-        });
-      });
-      console.log(table.toString());
-      exitProcess();
-    });
-
-  }
-}
 
 /**
  * Use the firebase assigned secret to generate a token based
@@ -442,8 +372,6 @@ function parseEntry(line) {
     tagRef = new Firebase(config.firebase + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
-    //tagRef.push();
-    //tagRef.setWithPriority({body: tagEntry[1]}, Firebase.ServerValue.TIMESTAMP);
   });
 
   // Pull out the URL for imgur/media links
@@ -466,8 +394,7 @@ function parseEntry(line) {
  * Update the list of tags that just tracks the count
  */
 function addToTagCount(tag) {
-  var tagRef = new Firebase(config.firebase + '/tag_count/' + tag)
-    , data;
+  var tagRef = new Firebase(config.firebase + '/tag_count/' + tag);
 
   authenticate();
 
@@ -495,8 +422,9 @@ function getNextPriority() {
  */
 function terminalFormat(sentence, width) {
   var formattedSentence = []
-    , width             = width || 60
     , count             = 0;
+
+  width = width || 60;
 
   _.each(sentence.split(' '), function(word) {
     // Add highlighting to tag words
@@ -521,8 +449,7 @@ function terminalFormat(sentence, width) {
  * based on the current TTY window size as the command was issued.
  */
 function computeTableSize() {
-  var width  = size.width
-    , height = size.height;
+  var width  = size.width;
 
   if (width < 80) {
     // Super small, dis-regard the dates
