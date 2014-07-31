@@ -132,46 +132,35 @@ function getSortedTagList(input) {
  */
 function getBtcFeed(amount) {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
-    , btcPrice;
+    , last   = "last"
+    , ask    = "ask"
+    , bid    = "bid"
+    , btcPrice
+    , handler;
 
-  btcRef.child("last").on("value", function(snap) {
+  handler = function(snap, refType, amount ) {
     btcPrice = snap.val();
 
     if (amount) {
-      console.log("LAST: " + chalk.bold(amount) + " is worth " +
+      console.log(refType.toUpperCase() + ": " + chalk.bold(amount) + " is worth " +
                   chalk.bold.green("$" + btcPrice * amount));
     } else {
-      console.log("LAST: Current "   + chalk.underline("BTC") +
+      console.log(refType.toUpperCase() + ": Current " +  chalk.underline("BTC") +
                   " price in " + chalk.underline("USD") +
                   ": " + chalk.green.bold("$" + btcPrice));
     }
+  };
+
+  btcRef.child(last).on("value", function(snap) {
+    handler(snap, last, amount);
   });
 
-  btcRef.child("ask").on("value", function(snap) {
-    btcPrice = snap.val();
-
-    if (amount) {
-      console.log("ASK: " + chalk.bold(amount) + " is worth " +
-                  chalk.bold.green("$" + btcPrice * amount));
-    } else {
-      console.log("ASK: Current "   + chalk.underline("BTC") +
-                  " price in " + chalk.underline("USD") +
-                  ": " + chalk.green.bold("$" + btcPrice));
-    }
+  btcRef.child(ask).on("value", function(snap) {
+    handler(snap, ask, amount);
   });
 
-
-  btcRef.child("bid").on("value", function(snap) {
-    btcPrice = snap.val();
-
-    if (amount) {
-      console.log("BID: " + chalk.bold(amount) + " is worth " +
-                  chalk.bold.green("$" + btcPrice * amount));
-    } else {
-      console.log("BID: Current "   + chalk.underline("BTC") +
-                  " price in " + chalk.underline("USD") +
-                  ": " + chalk.green.bold("$" + btcPrice));
-    }
+  btcRef.child(bid).on("value", function(snap) {
+    handler(snap, bid, amount);
   });
 }
 
