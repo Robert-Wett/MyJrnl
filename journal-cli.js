@@ -2,6 +2,8 @@ var FBTokenGen = require('firebase-token-generator')
   , Firebase   = require('firebase')
   , program    = require('commander')
   , Promise    = require('promise')
+  , Spinner    = require('cli-spinner').Spinner
+  , spinner    = new Spinner('fetching..')
   , config     = require('./config.js').config
   , moment     = require('moment')
   , Table      = require('cli-table')
@@ -9,15 +11,19 @@ var FBTokenGen = require('firebase-token-generator')
   , size       = require('window-size')
   , _          = require('underscore');
 
+// Set up the spinner
+spinner.setSpinnerString('/-\\');
+
 
 program
   .version('0.0.1')
-  .option('-n, --number', 'See the last <number> of entries')
-  .option('-t, --tag',    'See entries containing [tag]')
-  .option('-T, --todo',   'Add an entry to the TODO section')
-  .option('-b, --btc',    'Check the current BTC price in USD')
-  .option('-x, --test',   'Experimental thing')
-  .option('--taglist',    'List all tags and their count')
+  .option('-n,    --number', 'See the last <number> of entries')
+  .option('-t,    --tag',    'See entries containing [tag]')
+  .option('-t,    --to-do',  'Add an entry to the TODO section')
+  .option('-b,    --btc',    'Check the current BTC price in USD')
+  .option('--btcfeed',       'Stream BTC price changes to console')
+  .option('-x,    --test',   'Experimental thing')
+  .option('--taglist',       'List all tags and their count')
   .parse(process.argv);
 
 if (program.number) {
@@ -54,6 +60,8 @@ if (program.number) {
 
     exitProcess();
   });
+} else if (program.btcfeed) {
+  getBtcFeed();
 } else {
   parseEntry(process.argv[2]);
 }
@@ -63,12 +71,14 @@ if (program.number) {
  * Get a list of all saved tags and their count, sorted
  * from highest count to lowest count.
  *
- * returns a promise.
+ * returns a promise that resolves to a string.
  */
 function getSortedTagList(input) {
   var tagCountRef = new Firebase(config.firebase + '/tag_count/')
     , tagArray    = []
     , longest     = 0
+    , delimited   = []
+    , returnVal
     , table;
 
   return new Promise(function(resolve, reject) {
@@ -89,17 +99,79 @@ function getSortedTagList(input) {
         return 0;
       });
 
-      table = new Table({
-        head: ['Tag', 'Count'],
-        colWidths: [longest + 2, 10]
-      });
+      if (size.height < 20) {
+        _.each(tagArray, function(tag) {
+          //delimited.push(chalk.blue.bold(tag[0]) + " -> " + chalk.red.underline(tag[1]));
+          delimited.push(chalk.dim(" (") + chalk.red(tag[1]) + chalk.dim(")") + chalk.bold.blue(tag[0]));
+        });
 
-      _.each(tagArray, function(tag) {
-        table.push([tag[0], tag[1]]);
-      });
+        returnVal = "\n" + delimited.join(" " + chalk.bgBlack("|") + " ") + "\n";
+      } else {
+        table = new Table({
+          head: ['Tag', 'Count'],
+          colWidths: [longest + 2, 10]
+        });
 
-      resolve(table.toString());
+        _.each(tagArray, function(tag) {
+          table.push([tag[0], tag[1]]);
+        });
+
+        returnVal = table.toString();
+      }
+
+      resolve(returnVal);
     });
+  });
+}
+
+
+/**
+ * This is a free entry point firebase provides that syncs with
+ * coinbase. It's easy to add so I figured I'd put it in, seeing
+ * as how I often check the prices
+ */
+function getBtcFeed(amount) {
+  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
+    , btcPrice;
+
+  btcRef.child("last").on("value", function(snap) {
+    btcPrice = snap.val();
+
+    if (amount) {
+      console.log("LAST: " + chalk.bold(amount) + " is worth " +
+                  chalk.bold.green("$" + btcPrice * amount));
+    } else {
+      console.log("LAST: Current "   + chalk.underline("BTC") +
+                  " price in " + chalk.underline("USD") +
+                  ": " + chalk.green.bold("$" + btcPrice));
+    }
+  });
+
+  btcRef.child("ask").on("value", function(snap) {
+    btcPrice = snap.val();
+
+    if (amount) {
+      console.log("ASK: " + chalk.bold(amount) + " is worth " +
+                  chalk.bold.green("$" + btcPrice * amount));
+    } else {
+      console.log("ASK: Current "   + chalk.underline("BTC") +
+                  " price in " + chalk.underline("USD") +
+                  ": " + chalk.green.bold("$" + btcPrice));
+    }
+  });
+
+
+  btcRef.child("bid").on("value", function(snap) {
+    btcPrice = snap.val();
+
+    if (amount) {
+      console.log("BID: " + chalk.bold(amount) + " is worth " +
+                  chalk.bold.green("$" + btcPrice * amount));
+    } else {
+      console.log("BID: Current "   + chalk.underline("BTC") +
+                  " price in " + chalk.underline("USD") +
+                  ": " + chalk.green.bold("$" + btcPrice));
+    }
   });
 }
 
