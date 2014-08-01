@@ -1,221 +1,69 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Robert Wettlaufer by Robert-Wett</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <link data-require="bootstrap-css@*" data-semver="3.2.0" rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css" />
+    <link href="http://fonts.googleapis.com/css?family=Arvo" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/animate.css/2.0/animate.min.css">
+    <script data-require="jquery@*" data-semver="2.1.1" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script data-require="bootstrap@*" data-semver="3.1.1" src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script data-require="angular.js@1.2.17" data-semver="1.2.17" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.17/angular.min.js"></script>
+    <script data-require="angular-animate@1.2.17" data-semver="1.2.17" src="http://code.angularjs.org/1.2.17/angular-animate.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.0.3/angular-sanitize.js"></script>
+    <!-- Firebase -->
+    <script src="https://cdn.firebase.com/js/client/1.0.17/firebase.js"></script>
+    <!-- AngularFire Library -->
+    <script src="https://cdn.firebase.com/libs/angularfire/0.7.1/angularfire.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <title>my_journal</title>
   </head>
-  <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/Robert-Wett">View On GitHub</a></li>
-        </nav>
-      </div><!-- end header -->
-
-    <div class="wrapper">
-
-      <section>
-        <div id="title">
-          <h1>Robert Wettlaufer</h1>
-          <p>About my Repositories</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/Robert-Wett">Robert-Wett</a></span>
-          <!--span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></span-->
-        </div>
-
-        <h4>
-<a name="hi-there-if-you-are-here-youre-probably-looking-for-a-breakdown-of-my-github-projects-so-you-dont-have-to-waste-time-seeing-if-i-can-actually-code-below-youll-find-a-brief-description-of-each-repository-starting-with-my-finished-projects" class="anchor" href="#hi-there-if-you-are-here-youre-probably-looking-for-a-breakdown-of-my-github-projects-so-you-dont-have-to-waste-time-seeing-if-i-can-actually-code-below-youll-find-a-brief-description-of-each-repository-starting-with-my-finished-projects"><span class="octicon octicon-link"></span></a>Hi there! If you are here, you're probably looking for a breakdown of my github projects so you don't have to waste time seeing if I can actually code. Below you'll find a brief description of each repository, starting with my finished projects.</h4>
-
-<p><br><br></p>
-
-<hr><h2>
-<a name="completed-stuff" class="anchor" href="#completed-stuff"><span class="octicon octicon-link"></span></a>Completed Stuff</h2>
-
-<blockquote>
-<p>Stuff that's pretty much done, or in a 'viewable' state</p>
-</blockquote>
-
-<p><br></p>
-
-<h3>
-<a name="journal" class="anchor" href="#journal"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/journal">journal</a>
-</h3>
-
-<h4>
-<a name="inprogress">Check out the front-end display of this project <a href="http://Robert-Wett.github.io/journal">here</a>. You can find the repo <a href="https://github.com/Robert-Wett/journal">here</a>.</h4>
-
-
-<hr><h2>
-<a name="completed-stuff" class="anchor" href="#completed-stuff"><span class="octicon octicon-link"></span></a>Completed Stuff</h2>
-
-<blockquote>
-<p>Stuff that's pretty much done, or in a 'viewable' state</p>
-</blockquote>
-
-<p><br></p>
-
-<h3>
-<a name="emoticonscraper" class="anchor" href="#emoticonscraper"><span class="octicon octicon-link"></span></a><a href="http://robert-wett.github.io/EmoticonScraper/">EmoticonScraper</a>
-</h3>
-
-<h4>
-<a name="this-project-listens-to-twitters-public-filter-stream-for-defined-emoticons-it-keeps-track-of-the-number-of-occurences-of-each-emoticon-and-displays-the-most-used-emoticon-at-the-top-the-bottom-portion-changes-each-time-a-different-emoticon-is-detected-and-shows-the-last-25-tweets-that-triggered-it" class="anchor" href="#this-project-listens-to-twitters-public-filter-stream-for-defined-emoticons-it-keeps-track-of-the-number-of-occurences-of-each-emoticon-and-displays-the-most-used-emoticon-at-the-top-the-bottom-portion-changes-each-time-a-different-emoticon-is-detected-and-shows-the-last-25-tweets-that-triggered-it"><span class="octicon octicon-link"></span></a>This project listens to Twitter's public <a href="https://dev.twitter.com/docs/api/1.1/post/statuses/filter">filter</a> stream for defined <a href="https://github.com/Robert-Wett/EmoticonScraper/blob/master/modules%2Femoticons.js">emoticons</a>. It keeps track of the number of occurences of each emoticon, and displays the most-used emoticon at the top. The bottom portion changes each time a different emoticon is detected, and shows the last 25 tweets that triggered it.</h4>
-
-<ul>
-<li>Node.js</li>
-<li>Socket.io</li>
-</ul><h3>
-<a name="correcthorsebatterystaple" class="anchor" href="#correcthorsebatterystaple"><span class="octicon octicon-link"></span></a><a href="http://robert-wett.github.io/CorrectHorseBatteryStaple/">CorrectHorseBatteryStaple</a>
-</h3>
-
-<h4>
-<a name="this-simple-web-app-was-built-in-a-couple-of-days-preceeding-the-heartbleed-bug-you-can-see-a-subtle-nod-to-the-famous-comic-in-the-last-cell-of-the-comic-here-there-is-some-back-end-api-functionality-that-isnt-documented-or-fully-fleshed-out" class="anchor" href="#this-simple-web-app-was-built-in-a-couple-of-days-preceeding-the-heartbleed-bug-you-can-see-a-subtle-nod-to-the-famous-comic-in-the-last-cell-of-the-comic-here-there-is-some-back-end-api-functionality-that-isnt-documented-or-fully-fleshed-out"><span class="octicon octicon-link"></span></a>This simple web-app was built in a couple of days preceeding the heartbleed bug. You can see a subtle nod to the <a href="http://imgs.xkcd.com/comics/password_strength.png">famous comic</a> in the last cell of the comic <a href="http://xkcd.com/1354/">here</a>. There is some back-end API functionality that isn't documented or fully fleshed out.</h4>
-
-<ul>
-<li>Node.js</li>
-<li>Bootstrap/jQuery</li>
-</ul><h3>
-<a name="boundedqueue" class="anchor" href="#boundedqueue"><span class="octicon octicon-link"></span></a><a href="http://robert-wett.github.io/BoundedQueue/">BoundedQueue</a>
-</h3>
-
-<h4>
-<a name="implements-a-fifo-queue-that-is-optionally-capacity-bound-the-queue-also-enforces-type-safety-for-all-entries-by-designating-the-queue-object-class-type-in-the-constructor-actionscript-3-does-not-intrinsically-support-templatesgenerics-other-than-the-vector-class-but-this-convention-serves-the-same-purpose-for-this-object" class="anchor" href="#implements-a-fifo-queue-that-is-optionally-capacity-bound-the-queue-also-enforces-type-safety-for-all-entries-by-designating-the-queue-object-class-type-in-the-constructor-actionscript-3-does-not-intrinsically-support-templatesgenerics-other-than-the-vector-class-but-this-convention-serves-the-same-purpose-for-this-object"><span class="octicon octicon-link"></span></a>Implements a FIFO queue that is optionally capacity bound. The queue also enforces type safety for all entries by designating the queue object class type in the constructor. ActionScript 3 does not intrinsically support templates/generics other than the Vector class but this convention serves the same purpose for this object.</h4>
-
-<ul>
-<li>ActionScript 3</li>
-</ul><h3>
-<a name="whats-trending" class="anchor" href="#whats-trending"><span class="octicon octicon-link"></span></a><a href="http://robert-wett.github.io/WhatsTrending">What's Trending?</a>
-</h3>
-
-<h4>
-<a name="unfortunately-this-app-was-deprecated-via-twitters-switch-to-api-v11-which-killed-the-api-end-point-needed-for-this-to-function" class="anchor" href="#unfortunately-this-app-was-deprecated-via-twitters-switch-to-api-v11-which-killed-the-api-end-point-needed-for-this-to-function"><span class="octicon octicon-link"></span></a><em>Unfortunately, this app was deprecated via Twitter's switch to <a href="https://dev.twitter.com/docs/rate-limiting/1.1/limits">API V1.1</a> which killed the API end-point needed for this to function.</em>
-</h4>
-
-<h4>
-<a name="the-words-in-the-title-are-the-current-top-ten-trending-terms-on-twitter-for-whatever-location-you-choose-in-the-drop-down-by-default-we-are-using-usa-underneath-are-the-results-we-get-when-we-cross-reference-urbandictionary-the-original-idea-was-to-try-and-make-sense-of-some-of-the-random-people-places-terms-and-things-that-trend-on-twitter-throughout-the-day-that-might-not-exactly-be-in-merriam-webster-the-results-can-be-funny-informative-random-useless-hardtosplit-offensive-or-a-healthy-mixture-of-them-all-on-the-right-hand-side-youll-see-a-table-not-on-mobile-that-holds-all-the-trends-youve-loaded-in-the-session-you-can-click-on-location-or-trend-name-to-sort-them-descendingascending-alphabetically-try-loading-different-locations-from-the-drop-down-at-the-top-and-see-what-trends-they-share-and-which-ones-are-local" class="anchor" href="#the-words-in-the-title-are-the-current-top-ten-trending-terms-on-twitter-for-whatever-location-you-choose-in-the-drop-down-by-default-we-are-using-usa-underneath-are-the-results-we-get-when-we-cross-reference-urbandictionary-the-original-idea-was-to-try-and-make-sense-of-some-of-the-random-people-places-terms-and-things-that-trend-on-twitter-throughout-the-day-that-might-not-exactly-be-in-merriam-webster-the-results-can-be-funny-informative-random-useless-hardtosplit-offensive-or-a-healthy-mixture-of-them-all-on-the-right-hand-side-youll-see-a-table-not-on-mobile-that-holds-all-the-trends-youve-loaded-in-the-session-you-can-click-on-location-or-trend-name-to-sort-them-descendingascending-alphabetically-try-loading-different-locations-from-the-drop-down-at-the-top-and-see-what-trends-they-share-and-which-ones-are-local"><span class="octicon octicon-link"></span></a>The words in the title are the current top ten trending terms on twitter, for whatever location you choose in the drop-down (by default we are using U.S.A.). Underneath are the results we get when we cross-reference UrbanDictionary. The original idea was to try and make sense of some of the random people, places, terms, and things that trend on twitter throughout the day that might not exactly be in Merriam-Webster. The results can be funny, informative, random, useless (#hardtosplit), offensive, or a healthy mixture of them all. On the right-hand side, you'll see a table (not on mobile) that holds all the trends you've loaded in the session. You can click on "Location", or "Trend Name" to sort them descending/ascending alphabetically. Try loading different locations from the drop-down at the top and see what trends they share, and which ones are 'local'.</h4>
-
-<ul>
-<li>javascript</li>
-<li>Bootstrap/jQuery</li>
-</ul><h3>
-<a name="daily-programmer" class="anchor" href="#daily-programmer"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/dailyprogrammer">Daily Programmer</a>
-</h3>
-
-<h4>
-<a name="these-are-my-solutions-to-various-rdailyprogrammer-challenges-in-5-different-languages-this-is-mostly-for-algorithm-practice-or-to-learn-a-new-language-the-languages-used-are" class="anchor" href="#these-are-my-solutions-to-various-rdailyprogrammer-challenges-in-5-different-languages-this-is-mostly-for-algorithm-practice-or-to-learn-a-new-language-the-languages-used-are"><span class="octicon octicon-link"></span></a>These are my solutions to various <a href="http://www.reddit.com/r/dailyprogrammer">/r/dailyprogrammer</a> challenges, in 5 different languages. This is mostly for algorithm practice, or to learn a new language. The languages used are:</h4>
-
-<ul>
-<li>C#</li>
-<li>JavaScript</li>
-<li>Python</li>
-<li>Ruby</li>
-<li>ActionScript 3
-<br><br><br>
-</li>
-</ul><hr><h2>
-<a name="in-progressexperimentalunfinished" class="anchor" href="#in-progressexperimentalunfinished"><span class="octicon octicon-link"></span></a>In-Progress/Experimental/Unfinished</h2>
-
-<blockquote>
-<p>Here are the projects that I did for the sole purpose (well, all my projects are for learning) of learning a specific technology or concept.  </p>
-</blockquote>
-
-<p><br></p>
-
-<h3>
-<a name="graphjs" class="anchor" href="#graphjs"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/GraphJS">GraphJS</a>
-</h3>
-
-<h4>
-<a name="working-through-common-graph-related-cs-problems-in-javascript-algorithms-are-transcribed-from-problem-solving-with-algorithms-and-data-structures-written-in-python" class="anchor" href="#working-through-common-graph-related-cs-problems-in-javascript-algorithms-are-transcribed-from-problem-solving-with-algorithms-and-data-structures-written-in-python"><span class="octicon octicon-link"></span></a>Working through common graph-related CS problems in JavaScript. Algorithms are transcribed from <a href="http://interactivepython.org/courselib/static/pythonds/Graphs/graphintro.html">Problem Solving with Algorithms and Data Structures</a>, originally written in python.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="simpledb" class="anchor" href="#simpledb"><span class="octicon octicon-link"></span></a><a href="http://robert-wett.github.io/SimpleDB/">SimpleDB</a>
-</h3>
-
-<h4>
-<a name="a-simple-key-value-database-implementation-in-python-with-write-ahead-logging-and-transaction-support-and-crash-recovery" class="anchor" href="#a-simple-key-value-database-implementation-in-python-with-write-ahead-logging-and-transaction-support-and-crash-recovery"><span class="octicon octicon-link"></span></a>A simple key value database implementation in python with transaction, write-ahead logging, and crash-recovery support. This was an exercise in learning basics of implementing a database and tackling well-known problems someone building a database would face. Obviously, concurrency was out of scope.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="ephemeralphoto" class="anchor" href="#ephemeralphoto"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/ephemeralphoto">EphemeralPhoto</a>
-</h3>
-
-<h4>
-<a name="web-app-that-allows-users-to-upload-images-and-denote-the-exact-time-the-file-will-be-un-hosted-and-the-file-deleted" class="anchor" href="#web-app-that-allows-users-to-upload-images-and-denote-the-exact-time-the-file-will-be-un-hosted-and-the-file-deleted"><span class="octicon octicon-link"></span></a>Web-App that allows users to upload images, and denote the exact time the file will be un-hosted and the file deleted.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="manicpixiedreamquote" class="anchor" href="#manicpixiedreamquote"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/ManicPixieDreamQuote">ManicPixieDreamQuote</a>
-</h3>
-
-<h4>
-<a name="web-app-that-satirized-the-manic-pixie-dream-girl-trope-using-actual-quotes-from-tinder-this-app-was-primarily-done-to-get-practice-using-mongodb--redis-the-original-poc-version-can-be-seen-here" class="anchor" href="#web-app-that-satirized-the-manic-pixie-dream-girl-trope-using-actual-quotes-from-tinder-this-app-was-primarily-done-to-get-practice-using-mongodb--redis-the-original-poc-version-can-be-seen-here"><span class="octicon octicon-link"></span></a>Web-app that satirized the <a href="http://tvtropes.org/pmwiki/pmwiki.php/Main/ManicPixieDreamGirl">Manic Pixie Dream Girl</a> trope using actual quotes from Tinder. This app was primarily done to get practice using <strong>MongoDB</strong> + <strong>Redis</strong>. The original (POC) version can be seen <a href="http://blooming-stream-5857.herokuapp.com">here</a>.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="ng-subredditviewer" class="anchor" href="#ng-subredditviewer"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/ng-subredditviewer">ng-subredditviewer</a>
-</h3>
-
-<h4>
-<a name="just-pulling-the-jsonp-results-from-a-specified-subreddit-and-displaying-the-top-level-entries-as-links-you-can-add-comments-on-each-of-the-entries-but-theres-no-backend-persistence-so-theyll-be-wiped-out-on-refresh-this-was-a-project-to-re-fresh-my-angularjs-skills-check-out-the-blocksorg-display-to-give-it-a-try" class="anchor" href="#just-pulling-the-jsonp-results-from-a-specified-subreddit-and-displaying-the-top-level-entries-as-links-you-can-add-comments-on-each-of-the-entries-but-theres-no-backend-persistence-so-theyll-be-wiped-out-on-refresh-this-was-a-project-to-re-fresh-my-angularjs-skills-check-out-the-blocksorg-display-to-give-it-a-try"><span class="octicon octicon-link"></span></a>Just pulling the jsonp results from a specified subreddit and displaying the top level entries as links. You can add comments on each of the entries, but there's no backend persistence so they'll be wiped out on refresh. This was a project to re-fresh my <strong>Angular.js</strong> skills. Check out the <a href="http://bl.ocks.org/Robert-Wett/27fad6eb3e74ba7c83ef">bl.ocks.org</a> display to give it a try.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="reddit-sentiment-analysis" class="anchor" href="#reddit-sentiment-analysis"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/RedditSentimentAnalysis">Reddit Sentiment Analysis</a>
-</h3>
-
-<h4>
-<a name="this-is-a-script-that-takes-in-a-reddit-username-as-a-parameter-then-scrapes-the-first-100-comments-of-said-user-and-determines-the-overall-positivity-ratio-of-the-comments-via-textblob-as-of-now-it-prints-out-the-top-10-positive-comments-then-top-10-negative-comments-these-are-sorted-lists-then-the-overall-ratio-this-was-primarily-done-to-get-more-experience-with-python-and-the-textblob-library" class="anchor" href="#this-is-a-script-that-takes-in-a-reddit-username-as-a-parameter-then-scrapes-the-first-100-comments-of-said-user-and-determines-the-overall-positivity-ratio-of-the-comments-via-textblob-as-of-now-it-prints-out-the-top-10-positive-comments-then-top-10-negative-comments-these-are-sorted-lists-then-the-overall-ratio-this-was-primarily-done-to-get-more-experience-with-python-and-the-textblob-library"><span class="octicon octicon-link"></span></a>This is a script that takes in a reddit username as a parameter, then scrapes the first 100 comments of said user and determines the overall positivity ratio of the comments via TextBlob. As of now, it prints out the top 10 positive comments, then top 10 negative comments (these are sorted lists), then the overall ratio. This was primarily done to get more experience with <strong>Python</strong> and the <strong>TextBlob</strong> library.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="pybraille" class="anchor" href="#pybraille"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/PyBraille">PyBraille</a>
-</h3>
-
-<h4>
-<a name="reads-in-a-string-and-converts-it-into-2x6-delimited-braille-characters-using-standard-english-braille-this-was-an-experiment-to-learn-more-about-oop-python" class="anchor" href="#reads-in-a-string-and-converts-it-into-2x6-delimited-braille-characters-using-standard-english-braille-this-was-an-experiment-to-learn-more-about-oop-python"><span class="octicon octicon-link"></span></a>Reads in a string and converts it into 2x6 delimited Braille characters (using standard English Braille). This was an experiment to learn more about <strong>OOP Python</strong>. You can try this out <a href="https://python.blockspring.com/blocks/84">here</a> to see how it works.</h4>
-
-<p><br></p>
-
-<h3>
-<a name="string-to-comment" class="anchor" href="#string-to-comment"><span class="octicon octicon-link"></span></a><a href="https://github.com/Robert-Wett/StringToComment">String To Comment</a>
-</h3>
-
-<h4>
-<a name="sublime-text-2-plugin-stringtocomment-allows-you-to-highlight-a-string-and-convert-it-into-an-80-char-delimited-block-comment-in-the-language-currently-set-in-the-view" class="anchor" href="#sublime-text-2-plugin-stringtocomment-allows-you-to-highlight-a-string-and-convert-it-into-an-80-char-delimited-block-comment-in-the-language-currently-set-in-the-view"><span class="octicon octicon-link"></span></a>Sublime Text 2 Plugin. StringToComment allows you to highlight a string and convert it into an 80-char delimited block comment in the language currently set in the view.</h4>
-      </section>
-
+  <body ng-app="MyJournal">
+    <!-- start header -->
+    <div id="header">
+      <div id="logo">
+        <h1><a href="#">>> my journal <span class="blink">_</span></a></h1>
+      </div>
+      <div id="menu">
+        <ul>
+          <li class="active"><a href="#">Entries</a>
+        </li>
+        <li><a href="#">Tags</a>
+      </li>
+      <li><a href="#about">About</a>
+    </li>
+    <li><a href="#">Contact </a>
+  </li>
+</ul>
+</div>
+</div>
+<hr />
+<!-- end header -->
+<!-- start page -->
+<div id="wrapper">
+<div id="page">
+<!-- start content -->
+<div id="content" ng-controller="JournalController">
+  <h2 class="title" ng-show="showLoading">.......  loading entries  ........</h2>
+  <div class="post repeat-animation" ng-repeat="entry in entries | orderByPriority | orderBy:'$priority':true">
+    <p class="date">{{entry.month}}<b>{{entry.day}}</b></p>
+    <p class="meta">
+    <small>Posted by <a href="https://github.com/Robert-Wett">Robert-Wett</a> at {{entry.hour}}&raquo;&nbsp;&nbsp;&nbsp;<a class="label label-primary" href="" ng-show="entry.media" ng-click="showImage = ! showImage">expand</a></small>
+    </p>
+    <div ng-bind-html="entry.body | linky" class="entry">
+      {{entry.body}}
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-              <script type="text/javascript">
-            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-          </script>
-          <script type="text/javascript">
-            try {
-              var pageTracker = _gat._getTracker("UA-52641220-1");
-            pageTracker._trackPageview();
-            } catch(err) {}
-          </script>
-
-  </body>
+    <img ng-show="showImage" src="{{entry.media}}" >
+  </div>
+  <!-- end content -->
+  <br style="clear: both;" />
+</div>
+</div>
+<!-- end page -->
+<!-- start footer -->
+<div id="footer">
+<p id="legal">Maintained by <a href="https://github.com/Robert-Wett">Robert-Wett</a>. See the <a href="https://github.com/Robert-Wett/journal">sauce</a>. &nbsp;&nbsp;&bull;&nbsp;&nbsp; Design by <a href="http://templated.co" rel="nofollow">TEMPLATED</a>.</p>
+<!-- end footer -->
+</div>
+</div>
+</body>
 </html>
