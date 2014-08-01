@@ -45,7 +45,7 @@
 <div id="content" ng-controller="JournalController">
   <h2 class="title" ng-show="showLoading">.......  loading entries  ........</h2>
   <div class="post repeat-animation" ng-repeat="entry in entries | orderByPriority | orderBy:'$priority':true">
-    <p class="date">{{entry.month}}<b>{{entry.day}}</p>
+    <p class="date">{{entry.month}}<b>{{entry.day}}</b></p>
     <p class="meta">
     <small>Posted by <a href="https://github.com/Robert-Wett">Robert-Wett</a> at {{entry.hour}}&raquo;&nbsp;&nbsp;&nbsp;<a class="label label-primary" href="" ng-show="entry.media" ng-click="showImage = ! showImage">expand</a></small>
     </p>
