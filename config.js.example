@@ -1,0 +1,7 @@
+var config = {
+  firebase: 'https://{{your-firebase-url}}.firebaseio.com',
+  entries:'https://{{your-firebase-url}}.firebaseio.com/entries',
+  secret: 'put your firebase secret here'
+};
+
+exports.config = config;
