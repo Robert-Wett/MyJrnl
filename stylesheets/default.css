@@ -221,7 +221,8 @@ hr {
 
   float: left;
 
-  width: 650px;
+  /* Hide this until we get the sidebar implemented */
+  /*width: 650px;*/
 
   margin-bottom: 10px;
 
