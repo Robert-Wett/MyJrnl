@@ -1,11 +1,15 @@
-var terminalFormat = require('helpers').computeTableSize
-  , getMediaLink   = require('helpers').getMediaLink
-  , getTableSize   = require('helpers').computeTableSize
-  , exitProcess    = require('helpers').exitProcess
+// #Firebase Helpers
+// ----------------
+var helpers        = require('./helpers.js')
+  , terminalFormat = helpers.terminalFormat
+  , getMediaLink   = helpers.getMediaLink
+  , getTableSize   = helpers.computeTableSize
+  , exitProcess    = helpers.exitProcess
   , FBTokenGen     = require('firebase-token-generator')
   , Firebase       = require('firebase')
+  , dbHelper       = require('./sqlite.js')
   , promise        = require('promise')
-  , config         = require('./config.js').config
+  , config         = require('../config.js').config
   , moment         = require('moment')
   , Table          = require('cli-table')
   , chalk          = require('chalk')
@@ -13,11 +17,9 @@ var terminalFormat = require('helpers').computeTableSize
   , _              = require('underscore');
 
 
-/**
- * Update the list of tags that just tracks the count
- */
+// Update the list of tags that just tracks the count.
 function addToTagCount(tag) {
-  var tagRef = new Firebase(config.firebase + '/tag_count/' + tag);
+  var tagRef = new Firebase(config.firebaseV2 + '/tag_count/' + tag);
 
   authenticate();
 
@@ -26,9 +28,10 @@ function addToTagCount(tag) {
   });
 }
 
+// Unused
 function getNextPriority() {
   var currentPriority
-    , priorityRef = new Firebase(config.firebase + '/priority');
+    , priorityRef = new Firebase(config.firebaseV2 + '/priority');
 
   priorityRef.transaction(function(curVal) {
     return curVal + 1;
@@ -38,6 +41,7 @@ function getNextPriority() {
 
   return currentPriority;
 }
+
 /**
  * Create an entry in the tag_index collection in order to proide an
  * `entry` -> `tags` connection. This allows for cascading deletes on
@@ -46,9 +50,9 @@ function getNextPriority() {
 function addToTagIndex(postId, tagId, tagName) {
   var tagIndexRef;
 
-  return new promise(function(resolve, reject) {
-    tagIndexRef = new Firebase(config.firebase + '/tag_index/' + postId);
-    tagIndexRef.push({ tagname: tagName, tag_id: tagId }, function(err) {
+  return new Promise(function(resolve, reject) {
+    tagIndexRef = new Firebase(config.firebaseV2 + '/tag_index/' + postId);
+    tagIndexRef.push(tagName, function(err) {
       if (err)
         reject(err);
       else
@@ -56,83 +60,14 @@ function addToTagIndex(postId, tagId, tagName) {
     });
   });
 }
+
 /**
  * Main method to take input and store it in firebase.
  */
 function parseEntry(line) {
-  var escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
-    , postHandler
-    , entryData
-    , mediaData
-    , entryRef
-    , tagQueue
-    , tagRef
-    , words
-    , time;
-
-  if (!line) {
-    exitProcess("You need to provide some input");
-  } else {
-    authenticate();
-  }
-
-  entryRef = new Firebase(config.firebase + '/entries');
-  // Unless the tags are properly escaped, then strip them out.
-  // This is mostly to strip un-wanted esc chars needed to enter
-  // longer, more complicated strings into the command line
-  line     = line.replace(escRegex, "$2");
-  line     = line.replace('\n', '');
-  line     = line.trim();
-  words    = line.split(' ');
-  time     = moment();
-  tagQueue = [];
-
-  _.each(words, function(word) {
-    if (word[0] === '@' && typeof word[1] !== "undefined") {
-      // Create an array with the tag as the key, and sentence as the value
-      tagQueue.push([word.slice(1), line]);
-    }
-  });
-
-  // Build the hash/object for tags
-  _.each(tagQueue, function(tagEntry) {
-    if (tagQueue[tagEntry[0]]) {
-      tagQueue[tagEntry[0]].push(tagEntry[1]);
-    }
-    else {
-      tagQueue[tagEntry[0]] = [tagEntry[1]];
-    }
-  });
-
-  _.each(tagQueue, function(tagEntry) {
-    addToTagCount(tagEntry[0]);
-    tagRef = new Firebase(config.firebase + '/tags/');
-    tagRef = tagRef.child(tagEntry[0]);
-    tagRef.push({body: tagEntry[1]});
-  });
-
-  // Pull out the URL for imgur/media links
-  mediaData = getMediaLink(line);
-
-  entryData = {
-    month: time.format('MMMM'),
-    day: time.format('DD'),
-    sortHour: time.format('H:mm'),
-    hour: time.format('h:mm a'),
-    media: mediaData,
-    body: line
-  };
-
-  postHandler = entryRef.push();
-  postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
-}
-
-
-/**
- * Main method to take input and store it in firebase.
- */
-function parseEntryTesting(line) {
-  var escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
+  var sqlite3  = require('sqlite3').verbose()
+    , db       = dbHelper.createDb()
+    , escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
     , postHandler
     , entryData
     , mediaData
@@ -150,7 +85,7 @@ function parseEntryTesting(line) {
     authenticate();
   }
 
-  entryRef = new Firebase(config.firebase + '/entries');
+  entryRef = new Firebase(config.entriesV2);
   // Unless the tags are properly escaped, then strip them out.
   // This is mostly to strip un-wanted esc chars needed to enter
   // longer, more complicated strings into the command line
@@ -176,6 +111,7 @@ function parseEntryTesting(line) {
   postHandler = entryRef.push();
   postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
   postId = postHandler.name();
+  dbHelper.insertEntry(db, postId, entryData.body, entryData.day, entryData.hour, entryData.month);
 
   _.each(words, function(word) {
     if (word[0] === '@' && typeof word[1] !== "undefined") {
@@ -196,22 +132,22 @@ function parseEntryTesting(line) {
 
   _.each(tagQueue, function(tagEntry) {
     addToTagCount(tagEntry[0]);
-    tagRef = new Firebase(config.firebase + '/tags/');
+    tagRef = new Firebase(config.firebaseV2 + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
     tagId = tagRef.name();
     addToTagIndex(postId, tagId, tagEntry[0]);
+    dbHelper.insertTag(db, tagId, postId, tagEntry[0]);
   });
 }
 
-/**
- * Use the firebase assigned secret to generate a token based
- * on an object that can be pulled out in firebase rules for
- * determining privs.
- * `".write": "auth.isAdmin == true"`
- */
+
+// Use the firebase assigned secret to generate a token based
+// on an object that can be pulled out in firebase rules for
+// determining privs.
+// `".write": "auth.isAdmin == true"`
 function authenticate() {
-  var baseRef  = new Firebase(config.firebase)
+  var baseRef  = new Firebase(config.firebaseV2)
     , tokenGen = new FBTokenGen(config.secret)
     , token    = tokenGen.createToken({ "isAdmin": true });
 
@@ -220,12 +156,10 @@ function authenticate() {
   });
 }
 
-/**
- * Get the last journal entries committed. Pass in a number to define
- * the amount of entries to display, starting from the latest entry.
- *
- * returns: promise.
- */
+// Get the last journal entries committed. Pass in a number to define
+// the amount of entries to display, starting from the latest entry.
+//
+// returns: promise.
 function getEntries(num) {
   var tableDim
     , singleCol
@@ -248,7 +182,7 @@ function getEntries(num) {
     });
   }
 
-  entryRef = new Firebase(config.entries);
+  entryRef = new Firebase(config.entriesV2);
   return new promise(function(resolve, reject) {
     entryRef.limit(num).once('value', function(snap) {
       _.each(snap.val(), function(entry) {
@@ -269,13 +203,11 @@ function getEntries(num) {
   });
 }
 
-/**
- * Retrieve all tag's and their respective entries. If a `tagName` object
- * is passed in, then only the entries for that tag will be displayed - otherwise,
- * all tags and their entries are displayed.
- *
- * Returns a promise which resolves to a string
- */
+// Retrieve all tag's and their respective entries. If a `tagName` object
+// is passed in, then only the entries for that tag will be displayed - otherwise,
+// all tags and their entries are displayed.
+//
+// Returns a promise which resolves to a string
 function getTags(num, tagName) {
   var entryWidth
     , tagEntries
@@ -284,7 +216,7 @@ function getTags(num, tagName) {
     , baseRef
     , table;
 
-  baseRef = new Firebase(config.firebase);
+  baseRef = new Firebase(config.firebaseV2);
   num     = num || 10;
 
   return new promise(function(resolve, reject) {
@@ -332,14 +264,12 @@ function getTags(num, tagName) {
   });
 }
 
-/**
- * Get a list of all saved tags and their count, sorted
- * from highest count to lowest count.
- *
- * returns a promise that resolves to a string.
- */
+// Get a list of all saved tags and their count, sorted
+// from highest count to lowest count.
+//
+// returns a promise that resolves to a string.
 function getSortedTagList(input) {
-  var tagCountRef = new Firebase(config.firebase + '/tag_count/')
+  var tagCountRef = new Firebase(config.firebaseV2 + '/tag_count/')
     , tagArray    = []
     , longest     = 0
     , delimited   = []
@@ -398,9 +328,7 @@ function getSortedTagList(input) {
 }
 
 
-/**
- * Track the ASK/BID and LAST BTC prices as they come in, in 'real-time'.
- */
+// Track the ASK/BID and LAST BTC prices as they come in, in 'real-time'.
 function getBtcFeed(amount) {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
     , last   = "last"
@@ -412,7 +340,7 @@ function getBtcFeed(amount) {
   handler = function(snap, refType, amount ) {
     btcPrice = snap.val();
 
-    //TODO: Set the LAST color to red if deficit, green if positive ;););)(;/)S
+    //TODO: Set the LAST color to red if deficit, green if positive
     if (amount) {
       console.log((refType === last ? chalk.bold.red.underline(refType.toUpperCase()) : refType.toUpperCase()) +
                   ": " + chalk.bold(amount) + " is worth " +
@@ -439,11 +367,9 @@ function getBtcFeed(amount) {
 }
 
 
-/**
- * This is a free entry point firebase provides that syncs with
- * coinbase. It's easy to add so I figured I'd put it in, seeing
- * as how I often check the prices
- */
+// This is a free entry point firebase provides that syncs with
+// coinbase. It's easy to add so I figured I'd put it in, seeing
+// as how I often check the prices
 function getBtc(amount) {
   var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
     , btcPrice;
@@ -462,4 +388,15 @@ function getBtc(amount) {
 
     exitProcess();
   });
+}
+
+module.exports = {
+  addToTagCount: addToTagCount,
+  addToTagIndex: addToTagIndex,
+  getSortedTagList: getSortedTagList,
+  getBtcFeed: getBtcFeed,
+  getBtc: getBtc,
+  getTags: getTags,
+  getEntries: getEntries,
+  parseEntry: parseEntry
 }
