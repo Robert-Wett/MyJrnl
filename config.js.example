@@ -1,6 +1,7 @@
 var config = {
   firebase: 'https://{{your-firebase-url}}.firebaseio.com',
   entries:'https://{{your-firebase-url}}.firebaseio.com/entries',
+  dbPath:'./db/journalStore.db',
   secret: 'put your firebase secret here'
 };
 
