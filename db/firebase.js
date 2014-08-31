@@ -17,56 +17,19 @@ var helpers        = require('./helpers.js')
   , _              = require('underscore');
 
 
-// Update the list of tags that just tracks the count.
-function addToTagCount(tag) {
-  var tagRef = new Firebase(config.firebaseV2 + '/tag_count/' + tag);
-
-  authenticate();
-
-  tagRef.once('value', function(snap) {
-    tagRef.set((snap.val() || 0) + 1);
-  });
-}
-
-// Unused
-function getNextPriority() {
-  var currentPriority
-    , priorityRef = new Firebase(config.firebaseV2 + '/priority');
-
-  priorityRef.transaction(function(curVal) {
-    return curVal + 1;
-  }, function(error, committed, snapshot) {
-    currentPriority = snapshot.val();
-  });
-
-  return currentPriority;
-}
 
 /**
- * Create an entry in the tag_index collection in order to proide an
- * `entry` -> `tags` connection. This allows for cascading deletes on
- * each tag entry associated with the entry.
- */
-function addToTagIndex(postId, tagId, tagName) {
-  var tagIndexRef;
-
-  return new Promise(function(resolve, reject) {
-    tagIndexRef = new Firebase(config.firebaseV2 + '/tag_index/' + postId);
-    tagIndexRef.push(tagName, function(err) {
-      if (err)
-        reject(err);
-      else
-        resolve();
-    });
-  });
-}
-
-/**
- * Main method to take input and store it in firebase.
+ * Parse a string into a journal entry backed by Firebase
+ * and sqlite
+ *
+ * @example
+ *     parseEntry('My, what a wonderful @day')
+ *
+ * @param  {String} line  Sentence to parse into journal entry
+ * @api public
  */
 function parseEntry(line) {
-  var sqlite3  = require('sqlite3').verbose()
-    , db       = dbHelper.createDb()
+  var db       = dbHelper.createDb()
     , escRegex = /(\\)([!|;|"|`|$|^])|(;)/g
     , postHandler
     , entryData
@@ -99,6 +62,7 @@ function parseEntry(line) {
   // Pull out the URL for imgur/media links
   mediaData = getMediaLink(line);
 
+  // Craft the POJO to represent the Firebase entry
   entryData = {
     month: time.format('MMMM'),
     day: time.format('DD'),
@@ -108,14 +72,19 @@ function parseEntry(line) {
     body: line
   };
 
+  // Issue a .push() command to create an empty entry
   postHandler = entryRef.push();
+  // Insert the entryData into empty entry. We set this entry with
+  // priority to enable sortying by date on the front-end
   postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
+  // Grab the unique ID from firebase corresponding to the mongo _id value
   postId = postHandler.name();
+  // Insert this entry into our local sqlite DB for searching
   dbHelper.insertEntry(db, postId, entryData.body, entryData.day, entryData.hour, entryData.month);
 
+  // Build the list of tags
   _.each(words, function(word) {
     if (word[0] === '@' && typeof word[1] !== "undefined") {
-      // Create an array with the tag as the key, and sentence as the value
       tagQueue.push([word.slice(1), line]);
     }
   });
@@ -130,11 +99,15 @@ function parseEntry(line) {
     }
   });
 
+  // Commit the tags to Firebase and Sqlite
   _.each(tagQueue, function(tagEntry) {
+    // Update the flat `tag_count` collection
     addToTagCount(tagEntry[0]);
+
     tagRef = new Firebase(config.firebaseV2 + '/tags/');
     tagRef = tagRef.child(tagEntry[0]);
     tagRef.push({body: tagEntry[1]});
+
     tagId = tagRef.name();
     addToTagIndex(postId, tagId, tagEntry[0]);
     dbHelper.insertTag(db, tagId, postId, tagEntry[0]);
@@ -142,10 +115,56 @@ function parseEntry(line) {
 }
 
 
-// Use the firebase assigned secret to generate a token based
-// on an object that can be pulled out in firebase rules for
-// determining privs.
-// `".write": "auth.isAdmin == true"`
+// Update the list of tags that just tracks the count.
+function addToTagCount(tag) {
+  var tagRef = new Firebase(config.firebaseV2 + '/tag_count/' + tag);
+
+  authenticate();
+
+  tagRef.once('value', function(snap) {
+    tagRef.set((snap.val() || 0) + 1);
+  });
+}
+
+
+/**
+ * Create an entry in the tag_index collection in order to proide an
+ * `entry` -> `tags` connection. This allows for cascading deletes on
+ * each tag entry associated with the entry.
+ *
+ * @example
+ *     addToTagIndex('239DFdf9dFlsdf', '399fsdfhgsd93S', 'hello');
+ *
+ * @param  {String}   postId  Unique ID belonging to the parent entry
+ *                            this tag is included in
+ * @param  {String}   tagId   Unique ID for the individual tag in this entry
+ * @param  {String}   tagName Actual human-readable name of the tag
+ * @return {Promise}  Promise promise object that will resolve to null or reject
+ *                    an `err`
+ * @api public
+ */
+function addToTagIndex(postId, tagId, tagName) {
+  var tagIndexRef;
+
+  return new Promise(function(resolve, reject) {
+    tagIndexRef = new Firebase(config.firebaseV2 + '/tag_index/' + postId);
+    tagIndexRef.push(tagName, function(err) {
+      if (err)
+        reject(err);
+      else
+        resolve();
+    });
+  });
+}
+
+
+/**
+ * Use the firebase assigned secret to generate a token based
+ * on an object that can be pulled out in firebase rules for
+ * determining priviledges. We are authenticating for "write"
+ * priviledges, and the Firebase rule looks like this:
+ * `".write": "auth.isAdmin == true"`
+ */
 function authenticate() {
   var baseRef  = new Firebase(config.firebaseV2)
     , tokenGen = new FBTokenGen(config.secret)
@@ -156,10 +175,22 @@ function authenticate() {
   });
 }
 
-// Get the last journal entries committed. Pass in a number to define
-// the amount of entries to display, starting from the latest entry.
-//
-// returns: promise.
+
+/**
+ * Get the last journal entries committed. Pass in a number to define
+ * the amount of entries to display, starting from the latest entry.
+ *
+ * @example
+ *     getEntries(10); // Log the last 10 entries
+ *     getEntries();   // Log the last 10 entries
+ *     getEntries(1);  // Log the last entry committed
+ *
+ * @param {Number} num    The number of entries to return,
+ *                        sorted by recently created.
+ *
+ * @return {Promise} Promise
+ * @api public
+ */
 function getEntries(num) {
   var tableDim
     , singleCol
@@ -203,14 +234,15 @@ function getEntries(num) {
   });
 }
 
+
 // Retrieve all tag's and their respective entries. If a `tagName` object
 // is passed in, then only the entries for that tag will be displayed - otherwise,
 // all tags and their entries are displayed.
 //
 // Returns a promise which resolves to a string
 function getTags(num, tagName) {
-  var entryWidth
-    , tagEntries
+  var tagEntries
+    , entryWidth
     , tagQuery
     , tableDim
     , baseRef
@@ -243,9 +275,7 @@ function getTags(num, tagName) {
       });
 
     } else {
-
       tableDim = getTableSize();
-
       table = new Table({
         head: ['Tag Name', 'Body'],
         colWidths: [tableDim[0], tableDim[1]]
@@ -328,67 +358,94 @@ function getSortedTagList(input) {
 }
 
 
-// Track the ASK/BID and LAST BTC prices as they come in, in 'real-time'.
-function getBtcFeed(amount) {
-  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
-    , last   = "last"
-    , ask    = "ask"
-    , bid    = "bid"
-    , btcPrice
-    , handler;
+/**
+ * Handler for all CryptoCurrency-related actions. Connects to Firebase
+ * for real-time updates on price changes for Bitcoin, Litecoin, and Dogecoin.
+ * If `isFeed` is `false`, then it simply prints out the current price and exits.
+ *
+ * @example
+ *     // Output the USD value of 1 BTC for every BID/ASK/LAST
+ *     cryptoPriceHandler("bitcoin", true);
+ *     // Output the USD value of 10 LTC for every BID/ASK/LAST
+ *     cryptoPriceHandler("litecoin", true, 10);
+ *     // Output the USD value of 10000 DOGE and exit
+ *     cryptoPriceHandler("dogecoin", false, 10000);
+ *
+ * @param {String}  cc        Cryptocurrency to track ('bitcoin', 'litecoin', 'dogecoin')
+ * @param {Boolean} isFeed    If `true`, attach and listen to a live-stream of price changes.
+ *                            if `false`, get current price and exit
+ * @param {String}  amount    Number of given cryptocurrency to convert to USD
+ * @api public
+ */
+function cryptoPriceHandler(cc, isFeed, amount) {
+  var baseUrl = "https://publicdata-cryptocurrency.firebaseio.com/"
+    , currencies = ["bitcoin", "litecoin", "dogecoin"]
+    , cryptoRef
+    , last = "last"
+    , ask  = "ask"
+    , bid  = "bid";
 
-  handler = function(snap, refType, amount ) {
-    btcPrice = snap.val();
+  if (!_.contains(currencies, cc)) {
+    cc = "bitcoin";
+  }
+  if (!!amount) {
+    amount = parseFloat(amount);
+  } else {
+    amount = null;
+  }
 
-    //TODO: Set the LAST color to red if deficit, green if positive
-    if (amount) {
-      console.log((refType === last ? chalk.bold.red.underline(refType.toUpperCase()) : refType.toUpperCase()) +
-                  ": " + chalk.bold(amount) + " is worth " +
-                  chalk.bold.green("$" + btcPrice * amount));
-    } else {
-      console.log((refType === last ? chalk.bold.red.underline(refType.toUpperCase()) : refType.toUpperCase()) +
-                  ": Current " +  chalk.underline("BTC") +
-                  " price in " + chalk.underline("USD") +
-                  ": " + chalk.green.bold("$" + btcPrice));
-    }
-  };
+  cryptoRef = new Firebase(baseUrl + cc);
 
-  btcRef.child(last).on("value", function(snap) {
-    handler(snap, last, amount);
+  // If we don't want to start a feed, get the `LAST` value, print
+  // it to the console, and kill the process
+  if (!isFeed) {
+    cryptoRef.child(last).on("value", function(snap) {
+      printPriceUpdate(cc, last, parseFloat(snap.val()), amount);
+      process.exit(1);
+    });
+  }
+
+  cryptoRef.child(last).on("value", function(snap) {
+    printPriceUpdate(cc, last, parseFloat(snap.val()), amount);
   });
 
-  btcRef.child(ask).on("value", function(snap) {
-    handler(snap, ask, amount);
+  cryptoRef.child(ask).on("value", function(snap) {
+    printPriceUpdate(cc, ask, parseFloat(snap.val()), amount);
   });
 
-  btcRef.child(bid).on("value", function(snap) {
-    handler(snap, bid, amount);
+  cryptoRef.child(bid).on("value", function(snap) {
+    printPriceUpdate(cc, bid, parseFloat(snap.val()), amount);
   });
+}
+
+/**
+ * Prints nicely formatted output to the console regarding cryptocurrency price changes
+ *
+ * @param {String}  cc        Cryptocurrency to track ('bitcoin', 'litecoin', 'dogecoin')
+ * @param {String}  refType   Type of update recieved ('LAST', 'ASK', 'BID')
+ * @param {Number}  curPrice  Current price of `cc` in USD
+ * @param {String}  amount    Number of given cryptocurrency to convert to USD
+ * @api private
+ */
+function printPriceUpdate(cc, refType, curPrice, amount) {
+  var output = [];
+
+  if (amount) {
+    output.push(refType === 'last' ? chalk.bold.red.underline(refType.toUpperCase())
+                                   : refType.toUpperCase());
+    output.push(": " + chalk.bold(amount) + " " + cc + " is worth ");
+    output.push(chalk.bold.green("$" + curPrice * amount));
+  } else {
+    output.push(refType === 'last' ? chalk.bold.red.underline(refType.toUpperCase())
+                                   : refType.toUpperCase());
+    output.push(": Current " +  chalk.underline(cc) + " price in " + chalk.underline("USD"));
+    output.push(": " + chalk.green.bold("$" + curPrice));
+  }
+
+  console.log(output.join(""));
 }
 
 
-// This is a free entry point firebase provides that syncs with
-// coinbase. It's easy to add so I figured I'd put it in, seeing
-// as how I often check the prices
-function getBtc(amount) {
-  var btcRef = new Firebase("https://publicdata-cryptocurrency.firebaseio.com/bitcoin")
-    , btcPrice;
-
-  btcRef.child("last").on("value", function(snap) {
-    btcPrice = snap.val();
-
-    if (amount) {
-      console.log(chalk.bold(amount) + " is worth " +
-                  chalk.bold.green("$" + btcPrice * amount));
-    } else {
-      console.log("Current "   + chalk.underline("BTC") +
-                  " price in " + chalk.underline("USD") +
-                  ": " + chalk.green.bold("$" + btcPrice));
-    }
-
-    exitProcess();
-  });
-}
 
 module.exports = {
   addToTagCount: addToTagCount,
@@ -398,5 +455,6 @@ module.exports = {
   getBtc: getBtc,
   getTags: getTags,
   getEntries: getEntries,
-  parseEntry: parseEntry
-}
+  parseEntry: parseEntry,
+  cryptoPriceHandler: cryptoPriceHandler
+};
