@@ -35,12 +35,12 @@ function parseEntry(line) {
     , entryData
     , mediaData
     , entryRef
-    , tagQueue
     , postId
     , tagRef
     , tagId
     , words
-    , time;
+    , time
+    , tags;
 
   if (!line) {
     exitProcess("You need to provide some input");
@@ -57,7 +57,7 @@ function parseEntry(line) {
   line     = line.trim();
   words    = line.split(' ');
   time     = moment();
-  tagQueue = [];
+  tags     = [];
 
   // Pull out the URL for imgur/media links
   mediaData = getMediaLink(line);
@@ -85,37 +85,39 @@ function parseEntry(line) {
   // Build the list of tags
   _.each(words, function(word) {
     if (word[0] === '@' && typeof word[1] !== "undefined") {
-      tagQueue.push([word.slice(1), line]);
-    }
-  });
-
-  // Build the hash/object for tags
-  _.each(tagQueue, function(tagEntry) {
-    if (tagQueue[tagEntry[0]]) {
-      tagQueue[tagEntry[0]].push(tagEntry[1]);
-    }
-    else {
-      tagQueue[tagEntry[0]] = [tagEntry[1]];
+      word = word.slice(1);
+      if (!_.contains(tags, word)) {
+        tags.push(word);
+      }
     }
   });
 
   // Commit the tags to Firebase and Sqlite
-  _.each(tagQueue, function(tagEntry) {
+  _.each(tags, function(tagEntry) {
     // Update the flat `tag_count` collection
-    addToTagCount(tagEntry[0]);
+    addToTagCount(tagEntry);
 
     tagRef = new Firebase(config.firebaseV2 + '/tags/');
-    tagRef = tagRef.child(tagEntry[0]);
-    tagRef.push({body: tagEntry[1]});
+    tagRef = tagRef.child(tagEntry);
+    tagRef.push({body: line});
 
     tagId = tagRef.name();
-    addToTagIndex(postId, tagId, tagEntry[0]);
-    dbHelper.insertTag(db, tagId, postId, tagEntry[0]);
+    addToTagIndex(postId, tagId, tagEntry);
+    dbHelper.insertTag(db, tagId, postId, tagEntry);
   });
 }
 
 
-// Update the list of tags that just tracks the count.
+/**
+ * Increment the Firebase list that tracks the total count of the tag.
+ *
+ * @example
+ *     // Increase the tag `nodejs`'s count number'
+ *     addToTagCount('nodejs');
+ *
+ * @param {String} tag  The name of the tag to increment, without the `@`
+ * @api private
+ */
 function addToTagCount(tag) {
   var tagRef = new Firebase(config.firebaseV2 + '/tag_count/' + tag);
 
@@ -164,6 +166,8 @@ function addToTagIndex(postId, tagId, tagName) {
  * determining priviledges. We are authenticating for "write"
  * priviledges, and the Firebase rule looks like this:
  * `".write": "auth.isAdmin == true"`
+ *
+ * @api private
  */
 function authenticate() {
   var baseRef  = new Firebase(config.firebaseV2)
@@ -235,11 +239,25 @@ function getEntries(num) {
 }
 
 
-// Retrieve all tag's and their respective entries. If a `tagName` object
-// is passed in, then only the entries for that tag will be displayed - otherwise,
-// all tags and their entries are displayed.
-//
-// Returns a promise which resolves to a string
+
+/**
+ * Retrieve all tag's and their respective entries. If a `tagName` object
+ * is passed in, then only the entries for that tag will be displayed - otherwise,
+ * all tags and their entries are displayed.
+ *
+ * @example
+ *     // Get the last 2 entries for the tag name `tvquotes`
+ *     getTags(2, 'tvquotes');
+ *     // Get the last 10 entries
+ *     getTags(10);
+ *     getTags();
+ *
+ * @param {Number} num     The number of entries to return, sorted last created.
+ * @param {String} tagName Name of the tag to search and then list found entries for.
+ *
+ * @return {Promise} Promise Resolves to a {String}.
+ * @api public
+ */
 function getTags(num, tagName) {
   var tagEntries
     , entryWidth
@@ -294,6 +312,26 @@ function getTags(num, tagName) {
   });
 }
 
+
+/**
+ * Handler for all CryptoCurrency-related actions. Connects to Firebase
+ * for real-time updates on price changes for Bitcoin, Litecoin, and Dogecoin.
+ * If `isFeed` is `false`, then it simply prints out the current price and exits.
+ *
+ * @example
+ *     // Output the USD value of 1 BTC for every BID/ASK/LAST
+ *     cryptoPriceHandler("bitcoin", true);
+ *     // Output the USD value of 10 LTC for every BID/ASK/LAST
+ *     cryptoPriceHandler("litecoin", true, 10);
+ *     // Output the USD value of 10000 DOGE and exit
+ *     cryptoPriceHandler("dogecoin", false, 10000);
+ *
+ * @param {String}  cc        Cryptocurrency to track ('bitcoin', 'litecoin', 'dogecoin')
+ * @param {Boolean} isFeed    If `true`, attach and listen to a live-stream of price changes.
+ *                            if `false`, get current price and exit
+ * @param {String}  amount    Number of given cryptocurrency to convert to USD
+ * @api public
+ */
 // Get a list of all saved tags and their count, sorted
 // from highest count to lowest count.
 //
@@ -448,13 +486,11 @@ function printPriceUpdate(cc, refType, curPrice, amount) {
 
 
 module.exports = {
-  addToTagCount: addToTagCount,
-  addToTagIndex: addToTagIndex,
-  getSortedTagList: getSortedTagList,
-  getBtcFeed: getBtcFeed,
-  getBtc: getBtc,
   getTags: getTags,
   getEntries: getEntries,
   parseEntry: parseEntry,
+  addToTagCount: addToTagCount,
+  addToTagIndex: addToTagIndex,
+  getSortedTagList: getSortedTagList,
   cryptoPriceHandler: cryptoPriceHandler
 };
