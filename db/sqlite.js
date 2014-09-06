@@ -33,7 +33,7 @@ function createDb(callback) {
     callback = noop;
   }
 
-  db  = getDb();
+  db = getDb();
 
   // **entry**                        <br/>
   // `id`      -- Unique ID           <br/>
@@ -42,14 +42,14 @@ function createDb(callback) {
   // `day`     -- Day of the post     <br/>
   // `hour`    -- Hour of the post    <br/>
   // `month`   -- Month of the post   <br/>
-  entryTable =  "CREATE TABLE IF NOT EXISTS entry (" +
-                  "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                  "fb_id TEXT, " +
-                  "body TEXT, " +
-                  "day INTEGER, " +
-                  "hour INTEGER, " +
-                  "month INTEGER" +
-                "); ";
+  entryTable = "CREATE TABLE IF NOT EXISTS entry (" +
+                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                 "fb_id TEXT, " +
+                 "body TEXT, " +
+                 "day INTEGER, " +
+                 "hour INTEGER, " +
+                 "month INTEGER" +
+               "); ";
 
   // **tag**                              <br/>
   // `id`       -- Unique ID              <br/>
@@ -57,12 +57,12 @@ function createDb(callback) {
   // `entry_id` -- FK References Entry.id <br/>
   // `name`     -- Tag name               <br/>
   tagTable = "CREATE TABLE IF NOT EXISTS tag (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "fb_id TEXT, " +
-                "entry_id TEXT, " +
-                "name TEXT, " +
-                "FOREIGN KEY(entry_id) REFERENCES entry(id) " +
-              ");";
+               "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+               "fb_id TEXT, " +
+               "entry_id TEXT, " +
+               "name TEXT, " +
+               "FOREIGN KEY(entry_id) REFERENCES entry(id) " +
+             ");";
   // Wrap these database actions in a promise to then-ify it
   new Promise(function(resolve, reject) {
     db.serialize(function() {
@@ -73,7 +73,7 @@ function createDb(callback) {
   })
   .then(function() {
     return db;
-  })
+  });
 }
 
 
@@ -137,11 +137,19 @@ function searchSentences(word) {
   var db = getDb();
 
   db.all("SELECT ENTRY.body FROM ENTRY WHERE ENTRY.body LIKE '%"+word+"%';", function(err, rows) {
-    if (err) console.log(err);
-    rows.forEach(function(row) {
-      console.log(terminalFormat(row.body.replace(word, chalk.red(word))) + "\n");
-    });
-    exitProcess();
+    if (err) {
+      if (err.errno === 1) {
+        // Table doesn't exist. We create the table silently and just return.
+        console.log("Nothing found (your local DB is empty!)");
+      }
+    } else if (rows.length > 0) {
+      rows.forEach(function(row) {
+        console.log(terminalFormat(row.body.replace(word, chalk.red(word))) + "\n");
+      });
+      exitProcess();
+    } else {
+      console.log("Nothing found!");
+    }
   });
 }
 
@@ -187,4 +195,4 @@ module.exports = {
   insertTag: insertTag,
   searchSentences: searchSentences,
   getDb: getDb
-}
+};
