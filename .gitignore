@@ -3,3 +3,5 @@ config.js
 npm_modules/
 npm_modules/*
 journalStore.db
+journalStore2.db
+*.swp
