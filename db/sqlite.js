@@ -11,6 +11,9 @@ var terminalFormat = require('./helpers.js').terminalFormat
 /* ----------------------------------------------------- */
 
 
+// ###getDb
+// Get a reference to a sqlite3 database at the speficied path.
+// The default value is OPEN_READWRITE | OPEN_CREATE
 function getDb(path) {
   var db;
 
@@ -106,6 +109,11 @@ function insertEntry(db, fb_id, body, day, hour, month, cb) {
   }
 }
 
+/* ----------------------------------------------------- */
+// <h3>addEntryToDb</h3>
+// -----------
+// Takes a reference to the sqlite3 DB and adds an entry to
+// the `ENTRY` table.
 function addEntryToDb(db, fb_id, body, day, hour, month, cb) {
   var insertStatement;
 
@@ -142,6 +150,11 @@ function insertTag(db, fb_id, tag_id, name, cb) {
   }
 }
 
+/* ----------------------------------------------------- */
+// <h3>addTagToDb</h3>
+// -----------
+// Takes a reference to the sqlite3 DB and adds an entry to
+// the `TAG` table.
 function addTagToDb(db, fb_id, tag_id, name, cb) {
   var insertStatement;
 
