@@ -89,10 +89,6 @@ function createDb(callback) {
 function insertEntry(db, fb_id, body, day, hour, month, cb) {
   var insertStatement;
 
-  if (!!db) {
-    db = getDb();
-  }
-
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
@@ -100,13 +96,24 @@ function insertEntry(db, fb_id, body, day, hour, month, cb) {
     cb = noop;
   }
 
-  insertStatement = db.prepare('INSERT INTO ENTRY (fb_id, body, day, hour, month) ' +
-                               'VALUES (?, ?, ?, ?, ?)');
-
-  insertStatement.run(fb_id, body, day, hour, month, cb);
+  if (!!db) {
+    db = createDb(cb)
+    .then(function(db) {
+      addEntryToDb(db, fb_id, body, day, hour, month, cb);
+    });
+  } else {
+      addEntryToDb(db, fb_id, body, day, hour, month, cb);
+  }
 }
 
+function addEntryToDb(db, fb_id, body, day, hour, month, cb) {
+  var insertStatement;
 
+    insertStatement = db.prepare('INSERT INTO ENTRY (fb_id, body, day, hour, month) ' +
+                                 'VALUES (?, ?, ?, ?, ?)');
+
+    insertStatement.run(fb_id, body, day, hour, month, cb);
+}
 
 /* ----------------------------------------------------- */
 // <h3>insertTag</h3>
