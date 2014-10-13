@@ -98,7 +98,9 @@ else if (program.search) {
 }
 // Test route
 else if (program.test) {
-  require('./db/firebase.js').parseEntry(program.args.slice().join(" "));
+  /*
+   * This is set aside for experimenting
+   */
 }
 // Add an entry!
 else {
