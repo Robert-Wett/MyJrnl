@@ -2,21 +2,20 @@
 
 var validateInputAmount = require('./db/helpers.js').validateInputAmount
   , exitProcess         = require('./db/helpers.js').exitProcess
-  , program             = require('commander')
-  , _                   = require('underscore');
+  , program             = require('commander');
 
 program
   .version('0.0.1')
-  .option('-n,    --number', 'See the last <number> of entries')
-  .option('-t,    --tag',    'See entries containing [tag]')
-  .option('-f,    --feed',   'Start real-time (BTC/LTC/DOGE) price changes (BTC Default)')
-  .option('-b,    --btc',    'Check Bitcoin prices or set Bitcoin as currency in feed')
-  .option('-l,    --ltc',    'Check Litecoin prices or set Litecoin as currency in feed')
-  .option('-d,    --doge',   'Check Dogecoin prices or set Dogecoin as currency in feed')
+  .option('-n, --number',  'See the last <number> of entries')
+  .option('-t, --tag',     'See entries containing [tag]')
+  .option('-T  --taglist', 'List all tags and their count')
+  .option('-f, --feed',    'Start real-time (BTC/LTC/DOGE) price changes (BTC Default)')
+  .option('-b, --btc',     'Check Bitcoin prices or set Bitcoin as currency in feed')
+  .option('-l, --ltc',     'Check Litecoin prices or set Litecoin as currency in feed')
+  .option('-d, --doge',    'Check Dogecoin prices or set Dogecoin as currency in feed')
   //.option('-t,    --to-do',  'Add an entry to the TODO section')
-  .option('-s,    --search', 'Search for entries with specified text')
-  .option('-x,    --test',   'Experimental thing')
-  .option('--taglist',       'List all tags and their count')
+  .option('-s, --search',  'Search for entries with specified text')
+  .option('-x, --test',    'Experimental thing')
   .parse(process.argv);
 
 // List the last `n` entries
@@ -98,8 +97,12 @@ else if (program.search) {
   require('./db/sqlite.js').searchSentences(program.args[0]);
 }
 // Test route
-else if (program.test) {/*nothing here atm*/}
+else if (program.test) {
+  /*
+   * This is set aside for experimenting
+   */
+}
 // Add an entry!
 else {
-  require('./db/firebase.js').parseEntry(process.argv[2]);
+  require('./db/firebase.js').parseEntry(program.args.slice().join(" "));
 }
