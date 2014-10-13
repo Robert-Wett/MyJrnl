@@ -12,8 +12,11 @@ var terminalFormat = require('./helpers.js').terminalFormat
 
 
 function getDb(path) {
+  var db;
+
   path = path || config.dbPath2;
-  return new sqlite3.Database(path);
+  db   = new sqlite3.Database(path);
+  return db;
 }
 
 // ###createDb
@@ -64,15 +67,12 @@ function createDb(callback) {
                "FOREIGN KEY(entry_id) REFERENCES entry(id) " +
              ");";
   // Wrap these database actions in a promise to then-ify it
-  new Promise(function(resolve, reject) {
+  return new Promise(function(resolve, reject) {
     db.serialize(function() {
       db.run(entryTable);
       db.run(tagTable);
-      resolve();
+      resolve(db);
     });
-  })
-  .then(function() {
-    return db;
   });
 }
 
@@ -89,8 +89,10 @@ function createDb(callback) {
 function insertEntry(db, fb_id, body, day, hour, month, cb) {
   var insertStatement;
 
-  if (!db)
+  if (!!db) {
     db = getDb();
+  }
+
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
@@ -118,8 +120,10 @@ function insertEntry(db, fb_id, body, day, hour, month, cb) {
 function insertTag(db, fb_id, tag_id, name, cb) {
   var insertStatement;
 
-  if (!!db)
+  if (!!db) {
     db = getDb();
+  }
+
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
@@ -141,6 +145,8 @@ function searchSentences(word) {
       if (err.errno === 1) {
         // Table doesn't exist. We create the table silently and just return.
         console.log("Nothing found (your local DB is empty!)");
+      } else {
+        exitProcess(err);
       }
     } else if (rows.length > 0) {
       rows.forEach(function(row) {
@@ -190,7 +196,7 @@ function parseFirebaseToSql() {
 
 /* ----------------------------------------------------- */
 module.exports = {
-  create: createDb,
+  createDb: createDb,
   insertEntry: insertEntry,
   insertTag: insertTag,
   searchSentences: searchSentences,
