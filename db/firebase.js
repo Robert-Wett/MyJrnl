@@ -148,7 +148,7 @@ function addToTagCount(tag) {
 function addToTagIndex(postId, tagId, tagName) {
   var tagIndexRef;
 
-  return new Promise(function(resolve, reject) {
+  return new promise(function(resolve, reject) {
     tagIndexRef = new Firebase(config.firebaseV2 + '/tag_index/' + postId);
     tagIndexRef.push(tagName, function(err) {
       if (err)
@@ -189,8 +189,8 @@ function authenticate() {
  *     getEntries();   // Log the last 10 entries
  *     getEntries(1);  // Log the last entry committed
  *
- * @param {Number} num    The number of entries to return,
- *                        sorted by recently created.
+ * @param {Number} num    The number of entries to return, sorted by
+ *                        recently created.
  *
  * @return {Promise} Promise
  * @api public
@@ -314,29 +314,15 @@ function getTags(num, tagName) {
 
 
 /**
- * Handler for all CryptoCurrency-related actions. Connects to Firebase
- * for real-time updates on price changes for Bitcoin, Litecoin, and Dogecoin.
- * If `isFeed` is `false`, then it simply prints out the current price and exits.
+ * Get a list of all saved tags and their count, sorted from highest count to
+ * lowest count.
  *
  * @example
- *     // Output the USD value of 1 BTC for every BID/ASK/LAST
- *     cryptoPriceHandler("bitcoin", true);
- *     // Output the USD value of 10 LTC for every BID/ASK/LAST
- *     cryptoPriceHandler("litecoin", true, 10);
- *     // Output the USD value of 10000 DOGE and exit
- *     cryptoPriceHandler("dogecoin", false, 10000);
+ *     getSortedTagList().then(function(tags){ console.log(tags); });
  *
- * @param {String}  cc        Cryptocurrency to track ('bitcoin', 'litecoin', 'dogecoin')
- * @param {Boolean} isFeed    If `true`, attach and listen to a live-stream of price changes.
- *                            if `false`, get current price and exit
- * @param {String}  amount    Number of given cryptocurrency to convert to USD
  * @api public
  */
-// Get a list of all saved tags and their count, sorted
-// from highest count to lowest count.
-//
-// returns a promise that resolves to a string.
-function getSortedTagList(input) {
+function getSortedTagList() {
   var tagCountRef = new Firebase(config.firebaseV2 + '/tag_count/')
     , tagArray    = []
     , longest     = 0
@@ -376,11 +362,12 @@ function getSortedTagList(input) {
           head: ['Tag', 'Count'],
           colWidths: [longest + 2, 8],
           chars: {
-            'mid': '',
-            'left-mid': '',
-            'mid-mid': '',
-            'right-mid': ''
-          }
+              'top':    '', 'top-mid':    '', 'top-left':    '', 'top-right':    '',
+              'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
+              'left':   '', 'left-mid':   '', 'mid':         '', 'mid-mid':      '',
+              'right':  '', 'right-mid':  '', 'middle':      ' '
+            },
+          style: { 'padding-left': 0, 'padding-right': 0 }
         });
 
         _.each(tagArray, function(tag) {

@@ -1,8 +1,11 @@
 var config = {
   firebase: 'https://{{your-firebase-url}}.firebaseio.com',
+  firebaseV2: 'https://{{your-firebase-url}}.firebaseio.com/2/',
+  entriesV2:'https://{{your-firebase-url}}.firebaseio.com/2/entries',
   entries:'https://{{your-firebase-url}}.firebaseio.com/entries',
   dbPath:'./db/journalStore.db',
-  secret: 'put your firebase secret here'
+  dbPath2:'./db/journalStore2.db',
+  secret: '{{your-firebase-secret}}'
 };
 
-exports.config = config;
+exports.config = config

@@ -1,5 +1,5 @@
 var chalk = require('chalk')
-  , size  = require('window-size')
+  , Size  = require('window-size')
   , _     = require('underscore');
 
 // Callback function to close out the node process
@@ -10,7 +10,7 @@ var exitProcess = function(err) {
   } else {
     process.exit(1);
   }
-}
+};
 
 /**
  * Checks if the entry contains a valid imgur (DIRECT) link. Returns the
@@ -32,7 +32,7 @@ function getMediaLink(line) {
  * based on the current TTY window size as the command was issued.
  */
 function computeTableSize() {
-  var width  = size.width;
+  var width  = Size.width;
 
   if (width < 80) {
     // Super small, dis-regard the dates
@@ -45,6 +45,10 @@ function computeTableSize() {
 }
 
 
+function buildTable() {
+
+}
+
 /**
  * Takes a long sentence and returns one formatted to fit
  * within the current terminal size.
@@ -53,7 +57,7 @@ function terminalFormat(sentence, width) {
   var formattedSentence = []
     , count             = 0;
 
-  width = width || 60;
+  width = width || Size.width;
 
   _.each(sentence.split(' '), function(word) {
     // Add highlighting to tag words
@@ -72,9 +76,28 @@ function terminalFormat(sentence, width) {
 
   return formattedSentence.join(" ");
 }
-exports = {
-  computeTableSize: computeTableSize,
-  terminalFormat:   terminalFormat,
-  getMediaLink:     getMediaLink,
-  exitProcess:      exitProcess
+
+function validateInputAmount(amount) {
+  // Nothing was passed or what was passed was NaN
+  if (!!amount || typeof amount !== 'number') {
+    return [null, null];
+  }
+  // A negative number was passed. Send back error message
+  else if (amount < 0) {
+    return ["Please enter a positive number!"];
+  }
+  // Looks good
+  else {
+    return [null, parseFloat(amount)];
+  }
 }
+
+
+module.exports = {
+  validateInputAmount: validateInputAmount,
+  computeTableSize:    computeTableSize,
+  terminalFormat:      terminalFormat,
+  getMediaLink:        getMediaLink,
+  exitProcess:         exitProcess,
+  noop:                function(){}
+};
