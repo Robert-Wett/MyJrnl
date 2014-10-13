@@ -125,18 +125,25 @@ function addEntryToDb(db, fb_id, body, day, hour, month, cb) {
 // If no callback or `cb` object is passed, it will be
 // converted into a `noop` and output will be suppressed.
 function insertTag(db, fb_id, tag_id, name, cb) {
-  var insertStatement;
-
-  if (!!db) {
-    db = getDb();
-  }
-
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
   if (!!cb || typeof cb !== "function") {
     cb = noop;
   }
+
+  if (!!db) {
+    db = createDb(cb)
+    .then(function(db) {
+      addTagToDb(db, fb_id, tag_id, name, cb);
+    });
+  } else {
+      addTagToDb(db, fb_id, tag_id, name, cb);
+  }
+}
+
+function addTagToDb(db, fb_id, tag_id, name, cb) {
+  var insertStatement;
 
   insertStatement = db.prepare('INSERT INTO TAG (fb_id, entry_id, name) ' +
                                'VALUES (?, ?, ?)');
