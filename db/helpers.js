@@ -34,12 +34,15 @@ function getMediaLink(line) {
 function computeTableSize() {
   var width  = Size.width;
 
-  if (width < 80) {
+  /*
+   * Using the PEP standard of 80 seems too long...
+   * maybe it's my off-brand 4K monitor throwing me off
+   */
+  if (width < 60) {
     // Super small, dis-regard the dates
     return [false, width];
   } else {
-    // 9 seems to be the magic number to format
-    // longer date names, like September.
+    // "september".length === 9
     return [9, width - 14];
   }
 }

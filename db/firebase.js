@@ -207,12 +207,10 @@ function getEntries(num) {
 
   if (singleCol) {
     table = new Table({
-      head: ['Body'],
       colWidths: [tableDim[1]]
     });
   } else {
     table = new Table({
-      head: ['Date', 'Body'],
       colWidths: [tableDim[0], tableDim[1]]
     });
   }
@@ -347,7 +345,7 @@ function getSortedTagList() {
           return 1;
         return 0;
       });
-
+      console.log("Hmmm decisions.. ", size.height);
       if (size.height < 20) {
         _.each(tagArray, function(tag) {
           delimited.push(chalk.dim(" (")
@@ -365,7 +363,7 @@ function getSortedTagList() {
               'top':    '', 'top-mid':    '', 'top-left':    '', 'top-right':    '',
               'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
               'left':   '', 'left-mid':   '', 'mid':         '', 'mid-mid':      '',
-              'right':  '', 'right-mid':  '', 'middle':      ' '
+              'right':  '', 'right-mid':  '', 'middle':      '|'
             },
           style: { 'padding-left': 0, 'padding-right': 0 }
         });
