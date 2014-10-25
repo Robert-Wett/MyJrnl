@@ -11,3 +11,16 @@
 #Thoughts/Thinking out loud
 * Add a new escape character to tag twitter names (@@).
   * `>> journal @@robwett is the absolute worst. @terriblepeople"
+
+----
+#Newer Thoughts
+Too often I want to switch off between sources and what I want to display, but still have this functionality in the same terminal. Maybe I'm in a shitty mood and want to say something that I'll regret - pipe it to a `rant` blog that only certain people have access to or something like that. Want to do something official you'd like recruiters to see? Switch to `main` or whatever.
+ * Switch to your blog:
+    - `journal -s blog`
+    - `journal --source blog`
+ * Swtich to your rants:
+    - `journal -s rants`
+    - `journal -source rants`
+ * List sources:
+    - `journal -s -l`
+    - `journal --source --list`
