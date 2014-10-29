@@ -18,7 +18,7 @@ var exitProcess = function(err) {
  * the link if and only if the 'entry.media' entry isn't a blank string.
  */
 function getMediaLink(line) {
-  var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg]{3,4}/i
+  var regex = /http:\/\/i\.imgur\.com\/[a-z0-9]{7}\.[gif|png|jpg|jpeg|gifv]{3,4}/i
     , result = line.match(regex);
 
   if (!!result)
@@ -48,9 +48,42 @@ function computeTableSize() {
 }
 
 
-function buildTable() {
+var tableStyling = {
+  normal: {
+    chars: {
+      'top':    '_', 'top-mid':    '|', 'top-left':    '|', 'top-right':    '|',
+      'bottom': '_', 'bottom-mid': '|', 'bottom-left': '|', 'bottom-right': '|',
+      'left':   '|', 'left-mid':   '|', 'mid':         '_', 'mid-mid':      '|',
+      'right':  '|', 'right-mid':  '|', 'middle':      '│'
+    },
+    style: {}
+  },
+  minimal: {
+    chars: {
+        'top':    '', 'top-mid':    '', 'top-left':    '', 'top-right':    '',
+        'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
+        'left':   '', 'left-mid':   '', 'mid':         '', 'mid-mid':      '',
+        'right':  '', 'right-mid':  '', 'middle':      '|'
+    },
+    style: {
+      'padding-left': 0,
+      'padding-right': 0
+    }
+  },
+  bare: {
+    chars: {
+      'top':    '', 'top-mid':    '', 'top-left':    '', 'top-right':    '',
+      'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
+      'left':   '', 'left-mid':   '', 'mid':         '', 'mid-mid':      '',
+      'right':  '', 'right-mid':  '', 'middle':      ' '
+    },
+    style: {
+      'padding-left': 0,
+      'padding-right': 0
+    }
+  }
+};
 
-}
 
 /**
  * Takes a long sentence and returns one formatted to fit
@@ -102,5 +135,6 @@ module.exports = {
   terminalFormat:      terminalFormat,
   getMediaLink:        getMediaLink,
   exitProcess:         exitProcess,
+  tableStyle:          tableStyling,
   noop:                function(){}
 };

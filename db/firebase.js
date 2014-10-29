@@ -5,6 +5,7 @@ var helpers        = require('./helpers.js')
   , getMediaLink   = helpers.getMediaLink
   , getTableSize   = helpers.computeTableSize
   , exitProcess    = helpers.exitProcess
+  , tableStyle     = helpers.tableStyle
   , FBTokenGen     = require('firebase-token-generator')
   , Firebase       = require('firebase')
   , dbHelper       = require('./sqlite.js')
@@ -261,6 +262,7 @@ function getTags(num, tagName) {
     , entryWidth
     , tagQuery
     , tableDim
+    , longTag = 0
     , baseRef
     , table;
 
@@ -270,10 +272,11 @@ function getTags(num, tagName) {
   return new promise(function(resolve, reject) {
     if (tagName) {
       entryWidth = size.width - 10;
-
       table = new Table({
         head: [tagName],
-        colWidths: [entryWidth]
+        colWidths: [entryWidth],
+        chars: tableStyle.minimal.chars,
+        style: tableStyle.minimal.style
       });
 
       tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
@@ -294,16 +297,22 @@ function getTags(num, tagName) {
       tableDim = getTableSize();
       table = new Table({
         head: ['Tag Name', 'Body'],
-        colWidths: [tableDim[0], tableDim[1]]
+        chars: tableStyle.normal.chars,
+        style: tableStyle.normal.style
       });
 
       tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
         _.each(snap.val(), function(entry, key) {
           _.each(entry, function(entryVal) {
+            if (key.length > longTag) {
+              longTag = key.length;
+            }
+
             table.push([key, terminalFormat(entryVal.body, tableDim[1])]);
           });
         });
 
+        table.colWidths = [longTag, tableDim[1]];
         resolve(table.toString());
       });
     }
@@ -359,13 +368,8 @@ function getSortedTagList() {
         table = new Table({
           head: ['Tag', 'Count'],
           colWidths: [longest + 2, 8],
-          chars: {
-              'top':    '', 'top-mid':    '', 'top-left':    '', 'top-right':    '',
-              'bottom': '', 'bottom-mid': '', 'bottom-left': '', 'bottom-right': '',
-              'left':   '', 'left-mid':   '', 'mid':         '', 'mid-mid':      '',
-              'right':  '', 'right-mid':  '', 'middle':      '|'
-            },
-          style: { 'padding-left': 0, 'padding-right': 0 }
+          chars: tableStyle.minimal.chars,
+          style: tableStyle.minimal.style
         });
 
         _.each(tagArray, function(tag) {
