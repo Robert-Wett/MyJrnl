@@ -35,7 +35,7 @@ function createDb(callback) {
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
-  if (!!callback || typeof callback !== "function") {
+  if (!callback || typeof callback !== "function") {
     callback = noop;
   }
 
@@ -136,11 +136,11 @@ function insertTag(db, fb_id, tag_id, name, cb) {
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
-  if (!!cb || typeof cb !== "function") {
+  if (!cb || typeof cb !== "function") {
     cb = noop;
   }
 
-  if (!!db) {
+  if (!db) {
     db = createDb(cb)
     .then(function(db) {
       addTagToDb(db, fb_id, tag_id, name, cb);
