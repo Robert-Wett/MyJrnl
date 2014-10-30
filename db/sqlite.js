@@ -99,7 +99,7 @@ function insertEntry(db, fb_id, body, day, hour, month, cb) {
     cb = noop;
   }
 
-  if (!!db) {
+  if (!db) {
     db = createDb(cb)
     .then(function(db) {
       addEntryToDb(db, fb_id, body, day, hour, month, cb);
