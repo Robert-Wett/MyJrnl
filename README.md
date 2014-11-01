@@ -27,9 +27,16 @@
 #### >> journal Hello World\!\!\! You can escape \\!, \", \\`, \$, \\^
 ![Command Output](http://i.imgur.com/AqQW9yS.png)
 
+#### >> journal Here's an entry that we'll search against
+#### >> journal -s entry
+![Command Output](http://i.imgur.com/ch91puM.png)
 
+#### >> journal You can tag certain entries with things using the @atnotation
+#### >> journal -t atnotation
+![Command Output](http://i.imgur.com/vEl66x9.png)
 
-####Some screenshots/examples
+-----
+##Older Screenshots/Examples
 #####Basic Usage
 
 ![Basic usage](https://raw.githubusercontent.com/Robert-Wett/journal/master/img/journal-cli.gif)
