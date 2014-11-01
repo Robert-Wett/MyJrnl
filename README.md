@@ -24,7 +24,7 @@
     -s, --search   Search for entries with specified text
 ```
 
-#### >> journal Hello World\!\!\! You can escape \!, \", \`, \$, \^
+#### >> journal Hello World\!\!\! You can escape \\!, \", \\`, \$, \\^
 ![Command Output](http://i.imgur.com/AqQW9yS.png)
 
 
