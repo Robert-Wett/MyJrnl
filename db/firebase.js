@@ -354,7 +354,7 @@ function getSortedTagList() {
           return 1;
         return 0;
       });
-      console.log("Hmmm decisions.. ", size.height);
+
       if (size.height < 20) {
         _.each(tagArray, function(tag) {
           delimited.push(chalk.dim(" (")
