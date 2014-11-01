@@ -24,20 +24,10 @@ function getDb(path) {
 
 // ###createDb
 // Builds the sqlite database if it doesn't already exist.
-//
-// *returns* a reference to the newly created db, or the db
-// previously built.
-function createDb(callback) {
+function createDb() {
   var entryTable
     , tagTable
     , db;
-
-  // If no `cb` or callback object is passed - or if the `cb`
-  // object passed isn't a function, set the `cb` object to
-  // a noop, or `function(){}`
-  if (!callback || typeof callback !== "function") {
-    callback = noop;
-  }
 
   db = getDb();
 
@@ -69,7 +59,13 @@ function createDb(callback) {
                "name TEXT, " +
                "FOREIGN KEY(entry_id) REFERENCES entry(id) " +
              ");";
-  // Wrap these database actions in a promise to then-ify it
+
+  /**
+   *  Serialize the two table creation statements to make sure they are run
+   *  before returning a reference to the `db`. Notice in the creation statements
+   *  that the `IF NOT EXISTS` notation is used, so it skips this step and just
+   *  returns the ref to the `db` if it's already created.
+   */
   return new Promise(function(resolve, reject) {
     db.serialize(function() {
       db.run(entryTable);
@@ -90,16 +86,14 @@ function createDb(callback) {
 // If no callback or `cb` object is passed, it will be
 // converted into a `noop` and output will be suppressed.
 function insertEntry(db, fb_id, body, day, hour, month, cb) {
-  var insertStatement;
-
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
-  if (cb || typeof cb !== "function") {
+  if (typeof cb !== "function" && cb !== null) {
     cb = noop;
   }
 
-  if (!db) {
+  if (typeof db !== "undefined" && db !== null) {
     db = createDb(cb)
     .then(function(db) {
       addEntryToDb(db, fb_id, body, day, hour, month, cb);
@@ -136,11 +130,11 @@ function insertTag(db, fb_id, tag_id, name, cb) {
   // If no `cb` or callback object is passed - or if the `cb`
   // object passed isn't a function, set the `cb` object to
   // a noop, or `function(){}`
-  if (!cb || typeof cb !== "function") {
+  if (typeof cb !== "function" && cb !== null) {
     cb = noop;
   }
 
-  if (!db) {
+  if (typeof db !== "undefined" && db !== null) {
     db = createDb(cb)
     .then(function(db) {
       addTagToDb(db, fb_id, tag_id, name, cb);

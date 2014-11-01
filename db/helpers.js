@@ -1,14 +1,28 @@
-var chalk = require('chalk')
-  , Size  = require('window-size')
-  , _     = require('underscore');
+var chalk           = require('chalk')
+  , Size            = require('window-size')
+  , _               = require('underscore')
+  // Defines the length of the Month/Day column
+  , monthColLength  = 11
+  // Defines the length of the terminal width that will
+  // allow displaying the date nicely
+  , doubleColLength = 60
+  // Defines the right-padding at the end of the entry to the terminal
+  , rightPadding    = 15;
 
-// Callback function to close out the node process
+/**
+ * Callback function to close out the node process
+ *
+ * If an `err` object is passed, it prints out the error message and exits
+ * with a `1` for the failure code. If no `err` object is passed, then it's
+ * assumed that the process was completed successfully and exits with `0` for
+ * the success code.
+ */
 var exitProcess = function(err) {
   if (err) {
-    console.log("Woops - ", err);
-    process.exit(0);
-  } else {
+    console.log("Error: ", err);
     process.exit(1);
+  } else {
+    process.exit(0);
   }
 };
 
@@ -34,20 +48,23 @@ function getMediaLink(line) {
 function computeTableSize() {
   var width  = Size.width;
 
-  /*
+  /**
    * Using the PEP standard of 80 seems too long...
    * maybe it's my off-brand 4K monitor throwing me off
    */
-  if (width < 60) {
+  if (width < doubleColLength) {
     // Super small, dis-regard the dates
     return [false, width];
   } else {
-    // "september".length === 9
-    return [9, width - 14];
+    return [monthColLength, width - rightPadding];
   }
 }
 
-
+/**
+ * POJO that defines table-styling. The two major properties we are defining here
+ * are `chars` and `style`, because they are the defineable properties in the
+ * included NPM module `cli-table`.
+ */
 var tableStyling = {
   normal: {
     chars: {
@@ -115,7 +132,7 @@ function terminalFormat(sentence, width) {
 
 function validateInputAmount(amount) {
   // Nothing was passed or what was passed was NaN
-  if (!!amount || typeof amount !== 'number') {
+  if (typeof amount !== 'number' && amount !== null) {
     return [null, null];
   }
   // A negative number was passed. Send back error message
