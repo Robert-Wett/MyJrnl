@@ -68,7 +68,7 @@ function computeTableSize() {
 var tableStyling = {
   normal: {
     chars: {
-      'top':    '_', 'top-mid':    '|', 'top-left':    '|', 'top-right':    '|',
+      'top':     '', 'top-mid':    '' , 'top-left':    '' , 'top-right':    '' ,
       'bottom': '_', 'bottom-mid': '|', 'bottom-left': '|', 'bottom-right': '|',
       'left':   '|', 'left-mid':   '|', 'mid':         '_', 'mid-mid':      '|',
       'right':  '|', 'right-mid':  '|', 'middle':      '│'

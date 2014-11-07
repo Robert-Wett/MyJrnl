@@ -79,7 +79,7 @@ function parseEntry(line) {
   // priority to enable sortying by date on the front-end
   postHandler.setWithPriority(entryData, Firebase.ServerValue.TIMESTAMP, exitProcess);
   // Grab the unique ID from firebase corresponding to the mongo _id value
-  postId = postHandler.name();
+  postId = postHandler.key();
   // Insert this entry into our local sqlite DB for searching
   dbHelper.insertEntry(db, postId, entryData.body, entryData.day, entryData.hour, entryData.month);
 
@@ -102,7 +102,7 @@ function parseEntry(line) {
     tagRef = tagRef.child(tagEntry);
     tagRef.push({body: line});
 
-    tagId = tagRef.name();
+    tagId = tagRef.key();
     addToTagIndex(postId, tagId, tagEntry);
     dbHelper.insertTag(db, tagId, postId, tagEntry);
   });
@@ -175,7 +175,7 @@ function authenticate() {
     , tokenGen = new FBTokenGen(config.secret)
     , token    = tokenGen.createToken({ "isAdmin": true });
 
-  baseRef.auth(token, function(err) {
+  baseRef.authWithCustomToken(token, function(err) {
     if (err) console.log(err);
   });
 }
@@ -197,20 +197,22 @@ function authenticate() {
  * @api public
  */
 function getEntries(num) {
-  var tableDim
+  var entries = []
+    , tableDim
     , singleCol
     , table
     , entryRef;
 
-  tableDim  = getTableSize();
+  tableDim = getTableSize();
   singleCol = tableDim[0] === false;
-  num       = num || 10;
+  num = num || 10;
 
   if (singleCol) {
     table = new Table({
       colWidths: [tableDim[1]]
     });
-  } else {
+  }
+  else {
     table = new Table({
       colWidths: [tableDim[0], tableDim[1]]
     });
@@ -218,19 +220,30 @@ function getEntries(num) {
 
   entryRef = new Firebase(config.entriesV2);
   return new promise(function(resolve, reject) {
-    entryRef.limit(num).once('value', function(snap) {
+    entryRef
+    .limitToFirst(num)
+    .orderByPriority()
+    .once('value', function(snap) {
       _.each(snap.val(), function(entry) {
         if (singleCol) {
-          table.push([
-            terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
-          ]);
-        } else {
-          table.push([
+          entries.push([terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)]);
+        }
+        else {
+          entries.push([
             entry.month + '\n' + entry.day,
             terminalFormat(entry.body.replace(/\n/g, ''), tableDim[1] - 9)
           ]);
         }
       });
+
+      for (var i = entries.length - 1; i > 0; i--) {
+        if (!!entries[i][0]) {
+          table.push([entries[i][0], entries[i][1]]);
+        }
+        else {
+          table.push(entries[i]);
+        }
+      }
 
       resolve(table.toString());
     });
@@ -279,7 +292,8 @@ function getTags(num, tagName) {
         style: tableStyle.minimal.style
       });
 
-      tagQuery = baseRef.child('tags/' + tagName).once('value', function(snap) {
+      tagQuery = baseRef.child('tags/' + tagName)
+      .once('value', function(snap) {
         tagEntries = snap.val();
 
         if (!!tagEntries) {
@@ -296,12 +310,12 @@ function getTags(num, tagName) {
     } else {
       tableDim = getTableSize();
       table = new Table({
-        head: ['Tag Name', 'Body'],
-        chars: tableStyle.normal.chars,
-        style: tableStyle.normal.style
+        head: ['Tag Name', 'Body']
       });
 
-      tagQuery = baseRef.child('tags').limit(num).once('value', function(snap) {
+      tagQuery = baseRef.child('tags')
+      .limitToFirst(num)
+      .once('value', function(snap) {
         _.each(snap.val(), function(entry, key) {
           _.each(entry, function(entryVal) {
             if (key.length > longTag) {
@@ -340,11 +354,11 @@ function getSortedTagList() {
   return new promise(function(resolve, reject) {
     tagCountRef.on('value', function(tags) {
       tags.forEach(function(childVal) {
-        if (childVal.name().length > longest) {
-          longest = childVal.name().length;
+        if (childVal.key().length > longest) {
+          longest = childVal.key().length;
         }
 
-        tagArray.push([childVal.name(), childVal.val()]);
+        tagArray.push([childVal.key(), childVal.val()]);
       });
 
       tagArray.sort(function(a, b) {
@@ -384,6 +398,33 @@ function getSortedTagList() {
   });
 }
 
+
+function createEntryReference() {
+  var entryRef;
+
+  return new Promise(function(reject, resolve) {
+    entryRef = new Firebase(config.firebaseV2);
+    resolve(entryRef);
+  });
+}
+
+function createTagReference() {
+  var tagRef;
+
+  return new Promise(function(reject, resolve) {
+    tagRef = new Firebase(config.firebaseV2 + '/tags');
+    resolve(tagRef);
+  });
+}
+
+function createSpecificTagIndexReference(postId) {
+  var tagIndexRef;
+
+  return new Promise(function(reject, resolve) {
+    tagIndexRef = new Firebase(config.firebaseV2 + '/tag_index/' + postId);
+    resolve(tagIndexRef);
+  });
+}
 
 /**
  * Handler for all CryptoCurrency-related actions. Connects to Firebase

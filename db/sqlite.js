@@ -22,6 +22,20 @@ function getDb(path) {
   return db;
 }
 
+// ###getDbWithPromise
+// Get a reference to a sqlite3 database at the speficied path.
+// The default value is OPEN_READWRITE | OPEN_CREATE, and this
+// returns a `Promise` object.
+function getDbWithPromise(path) {
+  var db;
+
+  path = path || config.dbPath2;
+  return new Promise(function(reject, resolve) {
+    db   = new sqlite3.Database(path);
+    resolve(db);
+  });
+}
+
 // ###createDb
 // Builds the sqlite database if it doesn't already exist.
 function createDb() {
@@ -191,26 +205,68 @@ function parseFirebaseToSql() {
                     "(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")"
     , tagString   = "INSERT INTO TAG (fb_id, entry_id, name) VALUES " +
                     "(\"%s\", \"%s\", \"%s\")"
+    , entryList   = []
+    , tagList     = []
     , entryId
-    , data;
+    , data
+    , db          = getDb();
 
+
+  db.all("SELECT fb_id FROM ENTRY", function(err, rows) {
+    if (err) {
+      exitProcess(err);
+    }
+    else {
+      _.each(rows, function(row) {
+        entryList.push(row.fb_id);
+      });
+    }
+
+    db.all("SELECT fb_id FROM TAG", function(err, rows) {
+      if (err) {
+        exitProcess(err);
+      }
+      else {
+        _.each(rows, function(row) {
+          tagList.push(row.fb_id);
+        });
+      }
+    });
+  });
 
   entryRef.once('value', function(entries) {
     entries.forEach(function(entry) {
       data = entry.val();
       data.body = data.body.replace('\n', '');
-      console.log(util.format(entryString, entry.name(), data.body, data.day, data.hour, data.month));
+      if (_.contains(entryList, entry.key())) {
+        console.log(util.format("OK, we've got this entry: '%s'",
+                                data.body));
+      }
+      else {
+        console.log(util.format("We need to add the entry '%s'\n'%s'",
+                                entry.key(),
+                                data.body));
+      //console.log(util.format(entryString, entry.key(), data.body, data.day, data.hour, data.month));
+      }
     });
   });
 
   tagRef.once('value', function(tags) {
     tags.forEach(function(tag) {
-      entryId = tag.name();
-      _.each(tag.val(), function(tagId, tagName, x) {
-        console.log(util.format(tagString, tagId, entryId, tagName));
+      entryId = tag.key();
+      _.each(tag.val(), function(tagId, tagName) {
+        console.log("Tagname:", tagName);
+        if (_.contains(tagList, tagName)) {
+          console.log("OK, we've got this tag");
+        }
+        else {
+          console.log(util.format("We need to add the tag %s",
+                                     tagName));
+        }
       });
     });
   });
+
 }
 
 
@@ -221,5 +277,6 @@ module.exports = {
   insertEntry: insertEntry,
   insertTag: insertTag,
   searchSentences: searchSentences,
-  getDb: getDb
+  getDb: getDb,
+  parseFirebaseToSql: parseFirebaseToSql
 };
